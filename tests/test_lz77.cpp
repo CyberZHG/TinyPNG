@@ -130,6 +130,14 @@ TEST(LZ77Test, RandomTest) {
             j = static_cast<std::uint8_t>(byte(gen));
         }
         const auto seqs = lz77_encode(bytes.data(), bytes.size());
+        for (const auto& seq : seqs) {
+            if (seq.offset != 0) {
+                ASSERT_GE(seq.offset, 1);
+                ASSERT_LE(seq.offset, 32768);
+                ASSERT_GE(seq.len, 3);
+                ASSERT_LE(seq.len, 258);
+            }
+        }
         expectSameBytes(lz77_decode(seqs), bytes);
     }
 }

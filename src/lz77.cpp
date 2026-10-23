@@ -45,7 +45,7 @@ namespace tiny_png {
                             break;
                         }
                         if (data[head + j] != data[i + j]) {
-                            if (j > bestMatch.len) {
+                            if (j >= MATCH_MIN_LEN && j > bestMatch.len) {
                                 bestMatch = {0, offset, static_cast<std::uint16_t>(j)};
                             }
                             break;
