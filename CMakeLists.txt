@@ -40,6 +40,10 @@ endif()
 add_library(TinyPNG STATIC
         include/lz77.h
         src/lz77.cpp
+        include/bit_stream.h
+        src/bit_stream.cpp
+        # include/huffman.h
+        # src/huffman.cpp
 )
 
 target_include_directories(TinyPNG
@@ -62,6 +66,7 @@ if(TINY_PNG_ENABLE_TESTS)
     add_executable(runTests
             tests/test_main.cpp
             tests/test_lz77.cpp
+            tests/test_bit_stream.cpp
     )
 
     target_link_libraries(runTests
