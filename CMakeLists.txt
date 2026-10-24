@@ -38,12 +38,13 @@ if(TINY_PNG_ENABLE_COVERAGE)
 endif()
 
 add_library(TinyPNG STATIC
+        include/constants.h
         include/lz77.h
         src/lz77.cpp
         include/bit_stream.h
         src/bit_stream.cpp
-        # include/huffman.h
-        # src/huffman.cpp
+        include/deflate.h
+        src/deflate.cpp
 )
 
 target_include_directories(TinyPNG
@@ -67,6 +68,7 @@ if(TINY_PNG_ENABLE_TESTS)
             tests/test_main.cpp
             tests/test_lz77.cpp
             tests/test_bit_stream.cpp
+            tests/test_deflate.cpp
     )
 
     target_link_libraries(runTests

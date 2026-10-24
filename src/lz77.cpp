@@ -1,22 +1,18 @@
+#include "constants.h"
 #include "lz77.h"
 
 namespace tiny_png {
 
-    // Never change these 3 constants
-    constexpr std::uint16_t MATCH_MIN_LEN = 3;
-    constexpr std::uint16_t MATCH_MAX_OFFSET = 32768;
-    constexpr std::uint16_t MATCH_MAX_LEN = 258;
+    constexpr std::uint16_t MAX_MATCH_NUM = 32;
+    constexpr std::uint16_t MATCH_HASH_BITS = 15;
 
-    constexpr std::uint16_t MATCH_MAX_NUM = 32;
-    constexpr std::uint16_t HASH_BITS = 15;
-
-    static std::int64_t heads[1 << HASH_BITS];
+    static std::int64_t heads[1 << MATCH_HASH_BITS];
 
     static std::uint16_t bytesHash(const std::uint8_t* data, const std::size_t pos) {
         std::uint16_t h = data[pos];
         h = (h * 251) ^ data[pos + 1];
         h = (h * 251) ^ data[pos + 2];
-        return h & ((1 << HASH_BITS) - 1);
+        return h & ((1 << MATCH_HASH_BITS) - 1);
     }
 
     std::vector<LZ77Seq> lz77_encode(const std::uint8_t* data, const std::size_t len) {
@@ -25,27 +21,27 @@ namespace tiny_png {
         std::vector<std::int64_t> prev(len, -1);
         for (size_t i = 0, matchEnd = 0; i < len; ++i) {
             std::uint16_t hash = 0;
-            if (i + MATCH_MIN_LEN <= len) {
+            if (i + LZ77_MIN_MATCH_LEN <= len) {
                 hash = bytesHash(data, i);
             }
             if (i < matchEnd) {
-            } else if (i < MATCH_MIN_LEN || i + MATCH_MIN_LEN - 1 >= len) {
+            } else if (i < LZ77_MIN_MATCH_LEN || i + LZ77_MIN_MATCH_LEN - 1 >= len) {
                 seqs.push_back({data[i], 0, 0});
             } else {
                 LZ77Seq bestMatch = {data[i], 0, 0};
                 auto head = heads[hash];
                 for (size_t matchNum = 0, hasBestMatch = false;
-                    head != -1 && matchNum < MATCH_MAX_NUM && i - head <= MATCH_MAX_OFFSET && !hasBestMatch;
+                    head != -1 && matchNum < MAX_MATCH_NUM && i - head <= LZ77_MAX_MATCH_OFFSET && !hasBestMatch;
                     ++matchNum) {
                     const auto offset = static_cast<std::uint16_t>(i - head);
-                    for (size_t j = 0; i + j <= len && j <= MATCH_MAX_LEN; ++j) {
-                        if (i + j == len || j == MATCH_MAX_LEN) {
+                    for (size_t j = 0; i + j <= len && j <= LZ77_MAX_MATCH_LEN; ++j) {
+                        if (i + j == len || j == LZ77_MAX_MATCH_LEN) {
                             hasBestMatch = true;
                             bestMatch = {0, offset, static_cast<std::uint16_t>(j)};
                             break;
                         }
                         if (data[head + j] != data[i + j]) {
-                            if (j >= MATCH_MIN_LEN && j > bestMatch.len) {
+                            if (j >= LZ77_MIN_MATCH_LEN && j > bestMatch.len) {
                                 bestMatch = {0, offset, static_cast<std::uint16_t>(j)};
                             }
                             break;
@@ -58,7 +54,7 @@ namespace tiny_png {
                     matchEnd = i + bestMatch.len;
                 }
             }
-            if (i + MATCH_MIN_LEN <= len) {
+            if (i + LZ77_MIN_MATCH_LEN <= len) {
                 prev[i] = heads[hash];
                 heads[hash] = static_cast<std::int64_t>(i);
             }
