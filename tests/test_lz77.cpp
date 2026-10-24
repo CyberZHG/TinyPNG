@@ -50,7 +50,7 @@ TEST(LZ77Test, FourToFiveSameBytes) {
         const auto seqs = lz77_encode(bytes.data(), bytes.size());
         ASSERT_EQ(seqs.size(), 2);
         ASSERT_EQ(seqs[0], LZ77Seq('A', 0, 0));
-        ASSERT_EQ(seqs[1], LZ77Seq(0, 1, 3 + k));
+        ASSERT_EQ(seqs[1], LZ77Seq(0, 3 + k, 1));
         expectSameBytes(lz77_decode(seqs), bytes);
         bytes.push_back('A');
     }
@@ -61,7 +61,7 @@ TEST(LZ77Test, SixSameBytes) {
     const auto seqs = lz77_encode(bytes.data(), bytes.size());
     ASSERT_EQ(seqs.size(), 2);
     ASSERT_EQ(seqs[0], LZ77Seq('A', 0, 0));
-    ASSERT_EQ(seqs[1], LZ77Seq(0, 1, 5));
+    ASSERT_EQ(seqs[1], LZ77Seq(0, 5, 1));
     expectSameBytes(lz77_decode(seqs), bytes);
 }
 
@@ -72,7 +72,7 @@ TEST(LZ77Test, ABCABCABC) {
     ASSERT_EQ(seqs[0], LZ77Seq('A', 0, 0));
     ASSERT_EQ(seqs[1], LZ77Seq('B', 0, 0));
     ASSERT_EQ(seqs[2], LZ77Seq('C', 0, 0));
-    ASSERT_EQ(seqs[3], LZ77Seq(0, 3, 6));
+    ASSERT_EQ(seqs[3], LZ77Seq(0, 6, 3));
     expectSameBytes(lz77_decode(seqs), bytes);
 }
 
@@ -97,8 +97,8 @@ TEST(LZ77Test, ABCDABCABCD) {
     ASSERT_EQ(seqs[1], LZ77Seq('B', 0, 0));
     ASSERT_EQ(seqs[2], LZ77Seq('C', 0, 0));
     ASSERT_EQ(seqs[3], LZ77Seq('D', 0, 0));
-    ASSERT_EQ(seqs[4], LZ77Seq(0, 4, 3));
-    ASSERT_EQ(seqs[5], LZ77Seq(0, 7, 4));
+    ASSERT_EQ(seqs[4], LZ77Seq(0, 3, 4));
+    ASSERT_EQ(seqs[5], LZ77Seq(0, 4, 7));
     expectSameBytes(lz77_decode(seqs), bytes);
 }
 
@@ -108,9 +108,9 @@ TEST(LZ77Test, Ax10000) {
     ASSERT_EQ(seqs.size(), 40);
     ASSERT_EQ(seqs[0], LZ77Seq('A', 0, 0));
     for (int i = 1; i < 39; ++i) {
-        ASSERT_EQ(seqs[i], LZ77Seq(0, 1, 258));
+        ASSERT_EQ(seqs[i], LZ77Seq(0, 258, 1));
     }
-    ASSERT_EQ(seqs[39], LZ77Seq(0, 1, 195));
+    ASSERT_EQ(seqs[39], LZ77Seq(0, 195, 1));
     expectSameBytes(lz77_decode(seqs), bytes);
 }
 
@@ -126,9 +126,9 @@ TEST(LZ77Test, RandomTest) {
         }
         const auto seqs = lz77_encode(bytes.data(), bytes.size());
         for (const auto& seq : seqs) {
-            if (seq.offset != 0) {
-                ASSERT_GE(seq.offset, 1);
-                ASSERT_LE(seq.offset, 32768);
+            if (seq.dist != 0) {
+                ASSERT_GE(seq.dist, 1);
+                ASSERT_LE(seq.dist, 32768);
                 ASSERT_GE(seq.len, 3);
                 ASSERT_LE(seq.len, 258);
             }

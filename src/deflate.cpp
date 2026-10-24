@@ -29,8 +29,8 @@ namespace tiny_png {
     static std::uint16_t huffmanCodeToLengthBase[HUFFMAN_NUM_CODE];
     static std::uint8_t huffmanCodeToLengthExtraBits[HUFFMAN_NUM_CODE];
 
-    constexpr std::int32_t HUFFMAN_OFFSET_EXTRA_BITS_SIZE = 30;
-    constexpr std::int32_t HUFFMAN_OFFSET_EXTRA_BITS[] = {
+    constexpr std::int32_t HUFFMAN_DISTANCE_EXTRA_BITS_SIZE = 30;
+    constexpr std::int32_t HUFFMAN_DISTANCE_EXTRA_BITS[] = {
         0, 0, 0, 0,
         1, 1, 2, 2,
         3, 3, 4, 4,
@@ -40,10 +40,10 @@ namespace tiny_png {
         11, 11, 12, 12,
         13, 13,
     };
-    static std::uint16_t huffmanOffsetToBase[LZ77_MAX_MATCH_OFFSET + 1];
-    static std::uint16_t huffmanOffsetToCode[LZ77_MAX_MATCH_OFFSET + 1];
-    static std::uint8_t huffmanOffsetToExtraBits[LZ77_MAX_MATCH_OFFSET + 1];
-    static std::uint16_t huffmanCodeToOffsetBase[HUFFMAN_OFFSET_EXTRA_BITS_SIZE];
+    static std::uint16_t huffmanDistanceToBase[LZ77_MAX_MATCH_OFFSET + 1];
+    static std::uint16_t huffmanDistanceToCode[LZ77_MAX_MATCH_OFFSET + 1];
+    static std::uint8_t huffmanDistanceToExtraBits[LZ77_MAX_MATCH_OFFSET + 1];
+    static std::uint16_t huffmanDistanceToOffsetBase[HUFFMAN_DISTANCE_EXTRA_BITS_SIZE];
 
     class HuffmanTree {
     public:
@@ -114,17 +114,17 @@ namespace tiny_png {
         huffmanLengthToExtraBits[LZ77_MAX_MATCH_LEN] = 0;
         huffmanCodeToLengthBase[285] = 258;
         huffmanCodeToLengthExtraBits[285] = 0;
-        int offset = 1;
-        for (int i = 0; i < HUFFMAN_OFFSET_EXTRA_BITS_SIZE; ++i) {
-            const auto extraBits = HUFFMAN_OFFSET_EXTRA_BITS[i];
+        int dist = 1;
+        for (int i = 0; i < HUFFMAN_DISTANCE_EXTRA_BITS_SIZE; ++i) {
+            const auto extraBits = HUFFMAN_DISTANCE_EXTRA_BITS[i];
             const int range = 1 << extraBits;
-            const int base = offset;
+            const int base = dist;
             for (int j = 0; j < range; ++j) {
-                huffmanOffsetToBase[offset] = base;
-                huffmanOffsetToCode[offset] = i;
-                huffmanOffsetToExtraBits[offset++] = extraBits;
+                huffmanDistanceToBase[dist] = base;
+                huffmanDistanceToCode[dist] = i;
+                huffmanDistanceToExtraBits[dist++] = extraBits;
             }
-            huffmanCodeToOffsetBase[i] = base;
+            huffmanDistanceToOffsetBase[i] = base;
         }
         initialized = true;
     }
@@ -167,9 +167,9 @@ namespace tiny_png {
     }
 
     void writeOffset(BitStream& bits, const std::uint16_t value) {
-        const auto base = huffmanOffsetToBase[value];
-        const auto code = huffmanOffsetToCode[value];
-        const auto extraBits = huffmanOffsetToExtraBits[value];
+        const auto base = huffmanDistanceToBase[value];
+        const auto code = huffmanDistanceToCode[value];
+        const auto extraBits = huffmanDistanceToExtraBits[value];
         bits.writeInt(code, 5, true);
         bits.writeInt((value - base) & ((1 << extraBits) - 1), extraBits, false);
     }
@@ -179,12 +179,12 @@ namespace tiny_png {
         initializeHuffmanLookup();
         bits.writeInt(1, 1, false); // Last block
         bits.writeInt(0b01, 2, false); // Fixed Huffman tree
-        for (const auto& [byte, offset, len] : seqs) {
-            if (offset == 0) {
+        for (const auto& [byte, len, dist] : seqs) {
+            if (dist == 0) {
                 writeLiteral(bits, byte);
             } else {
                 writeLength(bits, len);
-                writeOffset(bits, offset);
+                writeOffset(bits, dist);
             }
         }
         writeLiteral(bits, DEFLATE_END);
@@ -205,19 +205,19 @@ namespace tiny_png {
             if (code < 256) {
                 seqs.push_back(LZ77Seq(code, 0, 0));
             } else {
-                auto length = huffmanCodeToLengthBase[code];
+                auto len = huffmanCodeToLengthBase[code];
                 if (const auto lengthExtraBits = huffmanCodeToLengthExtraBits[code]) {
-                    length += bits.readInt(lengthExtraBits, false);
+                    len += bits.readInt(lengthExtraBits, false);
                 }
-                const auto offsetCode = bits.readInt(5, true);
-                if (offsetCode >= HUFFMAN_OFFSET_EXTRA_BITS_SIZE) {  // Invalid offset code
+                const auto distanceCode = bits.readInt(5, true);
+                if (distanceCode >= HUFFMAN_DISTANCE_EXTRA_BITS_SIZE) {  // Invalid distance code
                     break;
                 }
-                auto offset = huffmanCodeToOffsetBase[offsetCode];
-                if (const auto offsetExtraBits = HUFFMAN_OFFSET_EXTRA_BITS[offsetCode]) {
-                    offset += bits.readInt(offsetExtraBits, false);
+                auto dist = huffmanDistanceToOffsetBase[distanceCode];
+                if (const auto distanceExtraBits = HUFFMAN_DISTANCE_EXTRA_BITS[distanceCode]) {
+                    dist += bits.readInt(distanceExtraBits, false);
                 }
-                seqs.push_back(LZ77Seq(0, offset, length));
+                seqs.push_back(LZ77Seq(0, len, dist));
             }
         }
         return seqs;

@@ -38,12 +38,12 @@ namespace tiny_png {
                     for (size_t j = 0; i + j <= len && j <= LZ77_MAX_MATCH_LEN; ++j) {
                         if (i + j == len || j == LZ77_MAX_MATCH_LEN) {
                             hasBestMatch = true;
-                            bestMatch = {0, offset, static_cast<std::uint16_t>(j)};
+                            bestMatch = {0, static_cast<std::uint16_t>(j), offset};
                             break;
                         }
                         if (data[head + j] != data[i + j]) {
                             if (j >= LZ77_MIN_MATCH_LEN && j > bestMatch.len) {
-                                bestMatch = {0, offset, static_cast<std::uint16_t>(j)};
+                                bestMatch = {0, static_cast<std::uint16_t>(j), offset};
                             }
                             break;
                         }
@@ -65,13 +65,13 @@ namespace tiny_png {
 
     std::vector<std::uint8_t> lz77_decode(const std::vector<LZ77Seq>& seqs) {
         std::vector<std::uint8_t> data;
-        for (const auto& [byte, offset, len] : seqs) {
-            if (offset == 0) {
+        for (const auto& [byte, len, dist] : seqs) {
+            if (dist == 0) {
                 data.push_back(byte);
             } else {
                 for (std::uint16_t i = 0; i < len; ++i) {
-                    if (data.size() >= offset) {
-                        data.push_back(data[data.size() - offset]);
+                    if (data.size() >= dist) {
+                        data.push_back(data[data.size() - dist]);
                     }
                 }
             }

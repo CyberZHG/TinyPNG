@@ -51,7 +51,7 @@ TEST(Huffman, Literal255) {
 }
 
 TEST(Huffman, Length3Offset1) {
-    const std::vector<LZ77Seq> seqs = {{0, 1, 3}};
+    const std::vector<LZ77Seq> seqs = {{0, 3, 1}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "00000" + "0000000" + "00");
     const auto decoded = huffman_decode(bs);
@@ -59,7 +59,7 @@ TEST(Huffman, Length3Offset1) {
 }
 
 TEST(Huffman, Length11Offset1) {
-    const std::vector<LZ77Seq> seqs = {{0, 1, 11}};
+    const std::vector<LZ77Seq> seqs = {{0, 11, 1}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0001001" + "0" + "00000" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
@@ -67,7 +67,7 @@ TEST(Huffman, Length11Offset1) {
 }
 
 TEST(Huffman, Length12Offset1) {
-    const std::vector<LZ77Seq> seqs = {{0, 1, 12}};
+    const std::vector<LZ77Seq> seqs = {{0, 12, 1}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0001001" + "1" + "00000" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
@@ -75,7 +75,7 @@ TEST(Huffman, Length12Offset1) {
 }
 
 TEST(Huffman, Length227ffset1) {
-    const std::vector<LZ77Seq> seqs = {{0, 1, 227}};
+    const std::vector<LZ77Seq> seqs = {{0, 227, 1}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "11000100" + "00000" + "00000" + "0000000" + "0000");
     const auto decoded = huffman_decode(bs);
@@ -83,7 +83,7 @@ TEST(Huffman, Length227ffset1) {
 }
 
 TEST(Huffman, Length257ffset1) {
-    const std::vector<LZ77Seq> seqs = {{0, 1, 257}};
+    const std::vector<LZ77Seq> seqs = {{0, 257, 1}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "11000100" + "01111" + "00000" + "0000000" + "0000");
     const auto decoded = huffman_decode(bs);
@@ -91,7 +91,7 @@ TEST(Huffman, Length257ffset1) {
 }
 
 TEST(Huffman, Length258ffset1) {
-    const std::vector<LZ77Seq> seqs = {{0, 1, 258}};
+    const std::vector<LZ77Seq> seqs = {{0, 258, 1}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "11000101" + "00000" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
@@ -99,7 +99,7 @@ TEST(Huffman, Length258ffset1) {
 }
 
 TEST(Huffman, Length3Offset5) {
-    const std::vector<LZ77Seq> seqs = {{0, 5, 3}};
+    const std::vector<LZ77Seq> seqs = {{0, 3, 5}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "00100" + "0" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
@@ -107,7 +107,7 @@ TEST(Huffman, Length3Offset5) {
 }
 
 TEST(Huffman, Length3Offset6) {
-    const std::vector<LZ77Seq> seqs = {{0, 6, 3}};
+    const std::vector<LZ77Seq> seqs = {{0, 3, 6}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "00100" + "1" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
@@ -115,7 +115,7 @@ TEST(Huffman, Length3Offset6) {
 }
 
 TEST(Huffman, Length3Offset24577) {
-    const std::vector<LZ77Seq> seqs = {{0, 24577, 3}};
+    const std::vector<LZ77Seq> seqs = {{0, 3, 24577}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "11101" + "0000000000000" + "0000000" + "00000");
     const auto decoded = huffman_decode(bs);
@@ -123,7 +123,7 @@ TEST(Huffman, Length3Offset24577) {
 }
 
 TEST(Huffman, Length3Offset32768) {
-    const std::vector<LZ77Seq> seqs = {{0, 32768, 3}};
+    const std::vector<LZ77Seq> seqs = {{0, 3, 32768}};
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "11101" + "1111111111111" + "0000000" + "00000");
     const auto decoded = huffman_decode(bs);

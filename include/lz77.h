@@ -8,11 +8,11 @@ namespace tiny_png {
 
     struct LZ77Seq {
         std::uint8_t byte;
-        std::uint16_t offset;
         std::uint16_t len;
+        std::uint16_t dist;
 
         bool operator==(const LZ77Seq& other) const {
-            return byte == other.byte && offset == other.offset && len == other.len;
+            return byte == other.byte && len == other.len && dist == other.dist;
         }
     };
 
