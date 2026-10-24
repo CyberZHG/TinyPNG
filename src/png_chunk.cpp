@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "png_chunk.h"
+#include "tiny_png/png_chunk.h"
 
 namespace tiny_png {
 

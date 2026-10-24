@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "bit_stream.h"
+#include "tiny_png/bit_stream.h"
 
 namespace tiny_png {
 

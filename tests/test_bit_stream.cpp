@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "bit_stream.h"
+#include "tiny_png/bit_stream.h"
 using namespace tiny_png;
 
 TEST(BitStream, Empty) {

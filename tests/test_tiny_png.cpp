@@ -2,7 +2,7 @@
 #include <random>
 #include <string>
 #include <gtest/gtest.h>
-#include "tiny_png.h"
+#include "tiny_png/tiny_png.h"
 using namespace tiny_png;
 
 TEST(TinyPNG, SaveLoadChessboardImage) {

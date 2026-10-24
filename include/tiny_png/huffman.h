@@ -1,8 +1,8 @@
 #ifndef TINYPNG_HUFFMAN_H
 #define TINYPNG_HUFFMAN_H
 
-#include "bit_stream.h"
-#include "lz77.h"
+#include "tiny_png/bit_stream.h"
+#include "tiny_png/lz77.h"
 
 namespace tiny_png {
 

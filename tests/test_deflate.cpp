@@ -1,6 +1,6 @@
 #include <random>
 #include <gtest/gtest.h>
-#include "deflate.h"
+#include "tiny_png/deflate.h"
 using namespace tiny_png;
 
 TEST(Deflate, Empty) {

@@ -1,6 +1,6 @@
 #include <stdexcept>
-#include "constants.h"
-#include "huffman.h"
+#include "tiny_png/constants.h"
+#include "tiny_png/huffman.h"
 
 namespace tiny_png {
 

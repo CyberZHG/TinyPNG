@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "png_chunk.h"
+#include "tiny_png/png_chunk.h"
 using namespace tiny_png;
 
 static const std::vector<std::uint8_t> IHDR_3x2_RGBA = {

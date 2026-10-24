@@ -1,6 +1,6 @@
-#include "lz77.h"
-#include "huffman.h"
-#include "deflate.h"
+#include "tiny_png/lz77.h"
+#include "tiny_png/huffman.h"
+#include "tiny_png/deflate.h"
 
 namespace tiny_png {
 

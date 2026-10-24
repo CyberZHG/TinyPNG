@@ -1,8 +1,8 @@
 #include <vector>
 #include <fstream>
-#include "png_chunk.h"
-#include "deflate.h"
-#include "tiny_png.h"
+#include "tiny_png/png_chunk.h"
+#include "tiny_png/deflate.h"
+#include "tiny_png/tiny_png.h"
 
 
 namespace tiny_png {

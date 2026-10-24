@@ -38,18 +38,18 @@ if(TINY_PNG_ENABLE_COVERAGE)
 endif()
 
 add_library(TinyPNG STATIC
-        include/constants.h
-        include/lz77.h
+        include/tiny_png/constants.h
+        include/tiny_png/lz77.h
         src/lz77.cpp
-        include/bit_stream.h
+        include/tiny_png/bit_stream.h
         src/bit_stream.cpp
-        include/huffman.h
+        include/tiny_png/huffman.h
         src/huffman.cpp
-        include/deflate.h
+        include/tiny_png/deflate.h
         src/deflate.cpp
-        include/png_chunk.h
+        include/tiny_png/png_chunk.h
         src/png_chunk.cpp
-        include/tiny_png.h
+        include/tiny_png/tiny_png.h
         src/tiny_png.cpp
 )
 

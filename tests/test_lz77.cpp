@@ -1,6 +1,6 @@
 #include <random>
 #include <gtest/gtest.h>
-#include "lz77.h"
+#include "tiny_png/lz77.h"
 using namespace tiny_png;
 
 static void expectSameBytes(const std::vector<std::uint8_t>& a, const std::vector<std::uint8_t>& b) {

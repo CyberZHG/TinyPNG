@@ -1,6 +1,6 @@
 #include <cstring>
-#include "constants.h"
-#include "lz77.h"
+#include "tiny_png/constants.h"
+#include "tiny_png/lz77.h"
 
 namespace tiny_png {
 

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "constants.h"
+#include "tiny_png/constants.h"
 
 namespace tiny_png {
 

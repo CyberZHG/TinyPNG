@@ -1,6 +1,6 @@
 #include <random>
 #include <gtest/gtest.h>
-#include "huffman.h"
+#include "tiny_png/huffman.h"
 using namespace std::string_literals;
 using namespace tiny_png;
 
