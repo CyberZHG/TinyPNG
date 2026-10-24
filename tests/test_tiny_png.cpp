@@ -71,6 +71,9 @@ TEST(TinyPNG, LoadSaveReloadImages) {
         std::vector<std::string> variants = {"none", "sub", "up"};
         if (colorType == ColorType::RGBA) {
             variants.emplace_back("sub_stored");
+            // variants.emplace_back("sub_dynamic");
+            // variants.emplace_back("average");
+            // variants.emplace_back("paeth");
         }
         for (const auto& variant : variants) {
             const auto fileName = name + "_" + variant + ".png";
@@ -94,5 +97,24 @@ TEST(TinyPNG, LoadSaveReloadImages) {
             ASSERT_EQ(reloaded.colorType, image.colorType) << fileName;
             ASSERT_EQ(reloaded.buffer, image.buffer) << fileName;
         }
+    }
+}
+
+TEST(TinyPNG, LoadUnsupportedImages) {
+    const std::string dataDir = TINY_PNG_TEST_DATA_DIR;
+    for (const std::string name : {
+         "signature",
+         "bit_depth_16",
+         "color_type_palette",
+         "compression_method",
+         "filter_method",
+         "interlace",
+         "no_idat",
+         "filter_type_average",
+         "filter_type_paeth",
+     }) {
+        const auto fileName = "error_" + name + ".png";
+        const auto image = load_image(dataDir + "/" + fileName);
+        EXPECT_NE(image.error, "") << fileName;
     }
 }
