@@ -120,7 +120,9 @@ namespace tiny_png {
             auto filterTypeCode = decoded.at(pos++);
             FilterType filterType;
             switch (filterTypeCode) {
+                case 0: filterType = FilterType::None; break;
                 case 1: filterType = FilterType::Sub; break;
+                case 2: filterType = FilterType::Up; break;
                 default:
                     imageData.error = "Unsupported filter type: " + std::to_string(filterTypeCode);
                     return imageData;
@@ -129,9 +131,19 @@ namespace tiny_png {
                 for (int k = 0; k < bytesPerPixel; ++k) {
                     auto byte = decoded.at(pos++);
                     switch (filterType) {
+                        case FilterType::None:
+                            imageData.buffer[(i * imageData.width + j) * bytesPerPixel + k] = byte;
+                            break;
                         case FilterType::Sub:
                             if (j > 0) {
                                 const auto prevByte = imageData.buffer[(i * imageData.width + (j - 1)) * bytesPerPixel + k];
+                                byte += prevByte;
+                            }
+                            imageData.buffer[(i * imageData.width + j) * bytesPerPixel + k] = byte;
+                            break;
+                        case FilterType::Up:
+                            if (i > 0) {
+                                const auto prevByte = imageData.buffer[((i - 1) * imageData.width + j) * bytesPerPixel + k];
                                 byte += prevByte;
                             }
                             imageData.buffer[(i * imageData.width + j) * bytesPerPixel + k] = byte;

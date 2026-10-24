@@ -10,9 +10,9 @@ namespace tiny_png {
     };
 
     enum class FilterType {
-        // None = 0,
+        None = 0,
         Sub = 1,
-        // Up = 2,
+        Up = 2,
     };
 
     constexpr std::uint16_t LZ77_MIN_MATCH_LEN = 3;
