@@ -73,7 +73,7 @@ TEST(TinyPNG, LoadSaveReloadImages) {
             variants.emplace_back("sub_stored");
             // variants.emplace_back("sub_dynamic");
             variants.emplace_back("average");
-            // variants.emplace_back("paeth");
+            variants.emplace_back("paeth");
         }
         for (const auto& variant : variants) {
             const auto fileName = name + "_" + variant + ".png";
@@ -110,7 +110,7 @@ TEST(TinyPNG, LoadUnsupportedImages) {
          "filter_method",
          "interlace",
          "no_idat",
-         "filter_type_paeth",
+         "filter_type_invalid",
      }) {
         const auto fileName = "error_" + name + ".png";
         const auto image = load_image(dataDir + "/" + fileName);

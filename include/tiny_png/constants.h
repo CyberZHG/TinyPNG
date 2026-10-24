@@ -17,6 +17,7 @@ namespace tiny_png {
         Sub = 1,
         Up = 2,
         Average = 3,
+        Paeth = 4,
     };
 
     constexpr std::uint16_t LZ77_MIN_MATCH_LEN = 3;

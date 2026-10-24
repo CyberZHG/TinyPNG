@@ -130,6 +130,7 @@ namespace tiny_png {
                 case 1: filterType = FilterType::Sub; break;
                 case 2: filterType = FilterType::Up; break;
                 case 3: filterType = FilterType::Average; break;
+                case 4: filterType = FilterType::Paeth; break;
                 default:
                     imageData.error = "Unsupported filter type: " + std::to_string(filterTypeCode);
                     return imageData;
@@ -152,11 +153,27 @@ namespace tiny_png {
                                 byte += prevByte;
                             }
                             break;
-                        case FilterType::Average:
-                            const auto left = j == 0 ? 0 : imageData.buffer[(i * imageData.width + (j - 1)) * bytesPerPixel + k];
-                            const auto up = i == 0 ? 0 : imageData.buffer[((i - 1) * imageData.width + j) * bytesPerPixel + k];
-                            const auto average = (static_cast<std::uint16_t>(left) + up) / 2;
-                            byte += average;
+                        case FilterType::Average: {
+                                const std::uint16_t left = j == 0 ? 0 : imageData.buffer[(i * imageData.width + (j - 1)) * bytesPerPixel + k];
+                                const std::uint16_t up = i == 0 ? 0 : imageData.buffer[((i - 1) * imageData.width + j) * bytesPerPixel + k];
+                                const auto average = (left + up) / 2;
+                                byte += average;
+                            }
+                            break;
+                        case FilterType::Paeth: {
+                                const std::uint16_t left = j == 0 ? 0 : imageData.buffer[(i * imageData.width + (j - 1)) * bytesPerPixel + k];
+                                const std::uint16_t up = i == 0 ? 0 : imageData.buffer[((i - 1) * imageData.width + j) * bytesPerPixel + k];
+                                const std::uint16_t upperLeft = (i == 0 || j == 0) ? 0 : imageData.buffer[((i - 1) * imageData.width + (j - 1)) * bytesPerPixel + k];
+                                const auto base = left + up - upperLeft;
+                                auto ref = left;
+                                if (std::abs(base - up) < std::abs(base - ref)) {
+                                    ref = up;
+                                }
+                                if (std::abs(base - upperLeft) < std::abs(base - ref)) {
+                                    ref = upperLeft;
+                                }
+                                byte += ref;
+                            }
                             break;
                     }
                     imageData.buffer[(i * imageData.width + j) * bytesPerPixel + k] = byte;
