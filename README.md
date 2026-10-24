@@ -18,6 +18,7 @@ TODO
 - Filter type: only use SUB
 - Compression: only use fixed Huffman compression
 
-## Reference
+## References
 
-- https://www.rfc-editor.org/rfc/rfc1951.pdf
+- PNG Compression & Filtering: https://www.libpng.org/pub/png/book/chapter09.html
+- DEFLATE: https://www.rfc-editor.org/rfc/rfc1951.pdf

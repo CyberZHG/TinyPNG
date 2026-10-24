@@ -72,7 +72,7 @@ TEST(TinyPNG, LoadSaveReloadImages) {
         if (colorType == ColorType::RGBA) {
             variants.emplace_back("sub_stored");
             // variants.emplace_back("sub_dynamic");
-            // variants.emplace_back("average");
+            variants.emplace_back("average");
             // variants.emplace_back("paeth");
         }
         for (const auto& variant : variants) {
@@ -110,7 +110,6 @@ TEST(TinyPNG, LoadUnsupportedImages) {
          "filter_method",
          "interlace",
          "no_idat",
-         "filter_type_average",
          "filter_type_paeth",
      }) {
         const auto fileName = "error_" + name + ".png";

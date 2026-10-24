@@ -129,6 +129,7 @@ namespace tiny_png {
                 case 0: filterType = FilterType::None; break;
                 case 1: filterType = FilterType::Sub; break;
                 case 2: filterType = FilterType::Up; break;
+                case 3: filterType = FilterType::Average; break;
                 default:
                     imageData.error = "Unsupported filter type: " + std::to_string(filterTypeCode);
                     return imageData;
@@ -138,23 +139,27 @@ namespace tiny_png {
                     auto byte = decoded.at(pos++);
                     switch (filterType) {
                         case FilterType::None:
-                            imageData.buffer[(i * imageData.width + j) * bytesPerPixel + k] = byte;
                             break;
                         case FilterType::Sub:
                             if (j > 0) {
                                 const auto prevByte = imageData.buffer[(i * imageData.width + (j - 1)) * bytesPerPixel + k];
                                 byte += prevByte;
                             }
-                            imageData.buffer[(i * imageData.width + j) * bytesPerPixel + k] = byte;
                             break;
                         case FilterType::Up:
                             if (i > 0) {
                                 const auto prevByte = imageData.buffer[((i - 1) * imageData.width + j) * bytesPerPixel + k];
                                 byte += prevByte;
                             }
-                            imageData.buffer[(i * imageData.width + j) * bytesPerPixel + k] = byte;
+                            break;
+                        case FilterType::Average:
+                            const auto left = j == 0 ? 0 : imageData.buffer[(i * imageData.width + (j - 1)) * bytesPerPixel + k];
+                            const auto up = i == 0 ? 0 : imageData.buffer[((i - 1) * imageData.width + j) * bytesPerPixel + k];
+                            const auto average = (static_cast<std::uint16_t>(left) + up) / 2;
+                            byte += average;
                             break;
                     }
+                    imageData.buffer[(i * imageData.width + j) * bytesPerPixel + k] = byte;
                 }
             }
         }
