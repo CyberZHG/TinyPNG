@@ -11,6 +11,8 @@ namespace tiny_png {
         std::uint16_t len;
         std::uint16_t dist;
 
+        LZ77Seq(const std::uint8_t byte, const std::uint16_t len, const std::uint16_t dist) : byte(byte), len(len), dist(dist) {}
+
         bool operator==(const LZ77Seq& other) const {
             return byte == other.byte && len == other.len && dist == other.dist;
         }

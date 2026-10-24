@@ -27,7 +27,7 @@ namespace tiny_png {
             }
             if (i < matchEnd) {
             } else if (i + LZ77_MIN_MATCH_LEN - 1 >= len) {
-                seqs.push_back({data[i], 0, 0});
+                seqs.emplace_back(data[i], 0, 0);
             } else {
                 LZ77Seq bestMatch = {data[i], 0, 0};
                 auto head = heads[hash];

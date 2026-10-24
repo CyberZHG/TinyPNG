@@ -1,13 +1,13 @@
 #ifndef TINYPNG_DEFLATE_H
 #define TINYPNG_DEFLATE_H
 
-#include "bit_stream.h"
-#include "lz77.h"
+#include <cstdint>
+#include <vector>
 
 namespace tiny_png {
 
-    BitStream huffman_encode(const std::vector<LZ77Seq>& seqs);
-    std::vector<LZ77Seq> huffman_decode(BitStream& bits);
+    std::vector<std::uint8_t> deflate_encode(const std::uint8_t* data, std::size_t len);
+    std::vector<std::uint8_t> deflate_decode(const std::vector<std::uint8_t>& data);
 
 }
 

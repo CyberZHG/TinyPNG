@@ -1,5 +1,12 @@
 # TinyPNG Library
 
+A lightweight, minimal PNG library.
+
+## Scope
+
+- Save: images with basic compression.
+- Load: only guaranteed to read files written by this library.
+
 ## Reference
 
 - https://www.rfc-editor.org/rfc/rfc1951.pdf
