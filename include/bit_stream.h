@@ -14,10 +14,11 @@ namespace tiny_png {
             return _buffer;
         }
 
-        void writeInt(std::int32_t value, std::int32_t numBits, bool bigEndian);
+        void writeInt(std::int32_t value, std::int32_t numBits, bool msb);
 
         void rewind();
         bool nextBit();
+        std::int32_t readInt(std::int32_t numBits, bool msb);
 
         [[nodiscard]] std::string toString() const;
 

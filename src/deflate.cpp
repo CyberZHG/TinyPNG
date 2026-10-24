@@ -5,8 +5,9 @@ namespace tiny_png {
 
     constexpr std::uint16_t DEFLATE_END = 256;
 
-    constexpr std::size_t HUFFMAN_CODE_LENGTH = 4;
-    constexpr std::int16_t HUFFMAN_CODE_INDEX[] = {0, 144, 256, 280, 288};
+    constexpr std::size_t HUFFMAN_CODE_INDEX_SIZE = 4;
+    constexpr std::size_t HUFFMAN_NUM_CODE = 288;
+    constexpr std::int16_t HUFFMAN_CODE_INDEX[] = {0, 144, 256, 280, HUFFMAN_NUM_CODE};
     constexpr std::uint8_t HUFFMAN_CODE_BITS[] = {8, 9, 7, 8};
     constexpr std::int16_t HUFFMAN_CODE_OFFSET[] = {0b00110000, 0b110010000, 0, 0b11000000};
 
@@ -24,6 +25,8 @@ namespace tiny_png {
     static std::uint16_t huffmanLengthToBase[LZ77_MAX_MATCH_LEN + 1];
     static std::uint16_t huffmanLengthToCode[LZ77_MAX_MATCH_LEN + 1];
     static std::uint8_t huffmanLengthToExtraBits[LZ77_MAX_MATCH_LEN + 1];
+    static std::uint16_t huffmanCodeToLengthBase[HUFFMAN_NUM_CODE];
+    static std::uint16_t huffmanCodeToLengthExtraBits[HUFFMAN_NUM_CODE];
 
     constexpr std::int32_t HUFFMAN_OFFSET_EXTRA_BITS_SIZE = 30;
     constexpr std::int32_t HUFFMAN_OFFSET_EXTRA_BITS[] = {
@@ -39,6 +42,52 @@ namespace tiny_png {
     static std::uint16_t huffmanOffsetToBase[LZ77_MAX_MATCH_OFFSET + 1];
     static std::uint16_t huffmanOffsetToCode[LZ77_MAX_MATCH_OFFSET + 1];
     static std::uint8_t huffmanOffsetToExtraBits[LZ77_MAX_MATCH_OFFSET + 1];
+    static std::uint16_t huffmanCodeToOffsetBase[HUFFMAN_OFFSET_EXTRA_BITS_SIZE];
+
+    class HuffmanTree {
+    public:
+        HuffmanTree() : _nodeNum(1) {}
+
+        void addCode(const std::int16_t code, const std::int16_t value, const std::uint8_t bits) {
+            addCode(0, code, value, bits);
+        }
+
+        std::int16_t findValue(BitStream& bits) const {
+            return findValue(0, bits);
+        }
+
+    private:
+        struct TreeNode {
+            std::int32_t next[2];
+            std::int16_t value;
+
+            TreeNode() : next{-1, -1}, value(-1) {}
+        };
+
+        std::int32_t _nodeNum;
+        TreeNode _nodes[575];
+
+        void addCode(const std::size_t index, const std::int16_t code, const std::int16_t value, std::uint8_t bits) {
+            if (bits == 0) {
+                _nodes[index].value = value;
+                return;
+            }
+            --bits;
+            const bool bit = code & (1 << bits);
+            if (_nodes[index].next[bit] == -1) {
+                _nodes[index].next[bit] = _nodeNum++;
+            }
+            addCode(_nodes[index].next[bit], code, value, bits);
+        }
+
+        std::int16_t findValue(const std::size_t index, BitStream& bits) const {
+            if (_nodes[index].value != -1) {
+                return _nodes[index].value;
+            }
+            return findValue(_nodes[index].next[bits.nextBit()], bits);
+        }
+    };
+    static HuffmanTree* literalLengthTree = nullptr;
 
     void initializeHuffmanLookup() {
         static bool initialized = false;
@@ -50,29 +99,52 @@ namespace tiny_png {
             const int range = 1 << HUFFMAN_LENGTH_EXTRA_BITS[i];
             const int base = length;
             for (int j = 0; j < range && length < LZ77_MAX_MATCH_LEN; ++j) {
+                const auto code = HUFFMAN_LENGTH_CODE_START + i;
+                const auto extraBits = HUFFMAN_LENGTH_EXTRA_BITS[i];
                 huffmanLengthToBase[length] = base;
-                huffmanLengthToCode[length] = HUFFMAN_LENGTH_CODE_START + i;
-                huffmanLengthToExtraBits[length++] = HUFFMAN_LENGTH_EXTRA_BITS[i];
+                huffmanLengthToCode[length] = code;
+                huffmanLengthToExtraBits[length++] = extraBits;
+                huffmanCodeToLengthBase[code] = base;
+                huffmanCodeToLengthExtraBits[code] = extraBits;
             }
         }
         huffmanLengthToBase[LZ77_MAX_MATCH_LEN] = LZ77_MAX_MATCH_LEN;
         huffmanLengthToCode[LZ77_MAX_MATCH_LEN] = 285;
         huffmanLengthToBase[LZ77_MAX_MATCH_LEN] = 0;
+        huffmanCodeToLengthBase[285] = 258;
+        huffmanCodeToLengthExtraBits[285] = 0;
         int offset = 1;
         for (int i = 0; i < HUFFMAN_OFFSET_EXTRA_BITS_SIZE; ++i) {
-            const int range = 1 << HUFFMAN_OFFSET_EXTRA_BITS[i];
+            const auto extraBits = HUFFMAN_OFFSET_EXTRA_BITS[i];
+            const int range = 1 << extraBits;
             const int base = offset;
             for (int j = 0; j < range; ++j) {
                 huffmanOffsetToBase[offset] = base;
                 huffmanOffsetToCode[offset] = i;
-                huffmanOffsetToExtraBits[offset++] = HUFFMAN_OFFSET_EXTRA_BITS[i];
+                huffmanOffsetToExtraBits[offset++] = extraBits;
             }
+            huffmanCodeToOffsetBase[i] = base;
         }
         initialized = true;
     }
 
+    void initializeHuffmanTree() {
+        if (literalLengthTree != nullptr) {
+            return;
+        }
+        literalLengthTree = new HuffmanTree();
+        for (std::size_t i = 0; i < HUFFMAN_CODE_INDEX_SIZE; ++i) {
+            const auto range = static_cast<std::int16_t>(HUFFMAN_CODE_INDEX[i + 1] - HUFFMAN_CODE_INDEX[i]);
+            for (std::int16_t j = 0; j < range; ++j) {
+                const auto code = static_cast<std::int16_t>(HUFFMAN_CODE_OFFSET[i] + j);
+                const auto value = static_cast<std::int16_t>(HUFFMAN_CODE_INDEX[i] + j);
+                literalLengthTree->addCode(code, value, HUFFMAN_CODE_BITS[i]);
+            }
+        }
+    }
+
     size_t findHuffmanCodeBitsIndex(const std::uint16_t value) {
-        for (int index = HUFFMAN_CODE_LENGTH - 1; index >= 0; --index) {
+        for (int index = HUFFMAN_CODE_INDEX_SIZE - 1; index >= 0; --index) {
             if (value >= HUFFMAN_CODE_INDEX[index]) {
                 return index;
             }
@@ -119,7 +191,31 @@ namespace tiny_png {
     }
 
     std::vector<LZ77Seq> huffman_decode(BitStream &bits) {
+        std::vector<LZ77Seq> seqs;
+        initializeHuffmanLookup();
+        initializeHuffmanTree();
         bits.rewind();
-        return {};
+        bits.nextBit(); bits.nextBit(); bits.nextBit();  // Ignore block info
+        while (true) {
+            const auto code = literalLengthTree->findValue(bits);
+            if (code == DEFLATE_END) {
+                break;
+            }
+            if (code < 256) {
+                seqs.push_back(LZ77Seq(code, 0, 0));
+            } else {
+                auto length = huffmanCodeToLengthBase[code];
+                if (const auto lengthExtraBits = huffmanCodeToLengthExtraBits[code]) {
+                    length += bits.readInt(lengthExtraBits, false);
+                }
+                const auto offsetIndex = bits.readInt(5, true);
+                auto offset = huffmanCodeToOffsetBase[offsetIndex];
+                if (const auto offsetExtraBits = HUFFMAN_OFFSET_EXTRA_BITS[offsetIndex]) {
+                    offset += bits.readInt(offsetExtraBits, false);
+                }
+                seqs.push_back(LZ77Seq(0, offset, length));
+            }
+        }
+        return seqs;
     }
 }
