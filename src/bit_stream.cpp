@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "bit_stream.h"
 
 namespace tiny_png {

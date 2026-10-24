@@ -1,3 +1,4 @@
+#include <cstring>
 #include "constants.h"
 #include "lz77.h"
 

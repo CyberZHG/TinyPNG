@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "constants.h"
 #include "deflate.h"
 
@@ -26,7 +27,7 @@ namespace tiny_png {
     static std::uint16_t huffmanLengthToCode[LZ77_MAX_MATCH_LEN + 1];
     static std::uint8_t huffmanLengthToExtraBits[LZ77_MAX_MATCH_LEN + 1];
     static std::uint16_t huffmanCodeToLengthBase[HUFFMAN_NUM_CODE];
-    static std::uint16_t huffmanCodeToLengthExtraBits[HUFFMAN_NUM_CODE];
+    static std::uint8_t huffmanCodeToLengthExtraBits[HUFFMAN_NUM_CODE];
 
     constexpr std::int32_t HUFFMAN_OFFSET_EXTRA_BITS_SIZE = 30;
     constexpr std::int32_t HUFFMAN_OFFSET_EXTRA_BITS[] = {
@@ -110,7 +111,7 @@ namespace tiny_png {
         }
         huffmanLengthToBase[LZ77_MAX_MATCH_LEN] = LZ77_MAX_MATCH_LEN;
         huffmanLengthToCode[LZ77_MAX_MATCH_LEN] = 285;
-        huffmanLengthToBase[LZ77_MAX_MATCH_LEN] = 0;
+        huffmanLengthToExtraBits[LZ77_MAX_MATCH_LEN] = 0;
         huffmanCodeToLengthBase[285] = 258;
         huffmanCodeToLengthExtraBits[285] = 0;
         int offset = 1;

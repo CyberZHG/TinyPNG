@@ -1,5 +1,5 @@
-#ifndef TINYPNG_HUFFMAN_H
-#define TINYPNG_HUFFMAN_H
+#ifndef TINYPNG_DEFLATE_H
+#define TINYPNG_DEFLATE_H
 
 #include "bit_stream.h"
 #include "lz77.h"
@@ -11,4 +11,4 @@ namespace tiny_png {
 
 }
 
-#endif //TINYPNG_HUFFMAN_H
+#endif //TINYPNG_DEFLATE_H
