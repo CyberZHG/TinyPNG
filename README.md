@@ -13,7 +13,8 @@ TODO
 
 ## Specification
 
-- Color type: RGBA
+- Color type: Grayscale, RGB, RGBA
+- Bit depth: only 8
 - Filter type: only use SUB
 - Compression: only use fixed Huffman compression
 

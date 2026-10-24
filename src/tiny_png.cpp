@@ -14,6 +14,9 @@ namespace tiny_png {
 
     static std::int32_t getBytesPerPixel(const ColorType colorType) {
         switch (colorType) {
+            case ColorType::Grayscale: return 1;
+            case ColorType::RGB: return 3;
+            case ColorType::GrayscaleAlpha: return 2;
             case ColorType::RGBA: return 4;
         }
         return 4;
@@ -81,6 +84,9 @@ namespace tiny_png {
                     return imageData;
                 }
                 switch (colorType) {
+                    case 0: imageData.colorType = ColorType::Grayscale; break;
+                    case 2: imageData.colorType = ColorType::RGB; break;
+                    case 4: imageData.colorType = ColorType::GrayscaleAlpha; break;
                     case 6: imageData.colorType = ColorType::RGBA; break;
                     default:
                         imageData.error = "Unsupported color type: " + std::to_string(colorType);

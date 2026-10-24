@@ -84,6 +84,10 @@ if(TINY_PNG_ENABLE_TESTS)
             PRIVATE gtest gtest_main
     )
 
+    target_compile_definitions(runTests
+            PRIVATE TINY_PNG_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data"
+    )
+
     add_test(NAME TinyPNGTests COMMAND runTests)
 endif()
 

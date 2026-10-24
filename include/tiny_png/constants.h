@@ -6,6 +6,9 @@
 namespace tiny_png {
 
     enum class ColorType {
+        Grayscale = 0,
+        RGB = 2,
+        GrayscaleAlpha = 4,
         RGBA = 6
     };
 
