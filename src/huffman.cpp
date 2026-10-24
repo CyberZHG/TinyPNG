@@ -5,6 +5,9 @@
 namespace tiny_png {
 
     constexpr std::uint16_t DEFLATE_END = 256;
+    constexpr std::int32_t DEFLATE_BLOCK_STORED = 0;
+    constexpr std::int32_t DEFLATE_BLOCK_FIXED_HUFFMAN = 1;
+    // constexpr std::int32_t DEFLATE_BLOCK_DYNAMIC_HUFFMAN = 2;
 
     constexpr std::size_t HUFFMAN_CODE_INDEX_SIZE = 4;
     constexpr std::size_t HUFFMAN_NUM_CODE = 288;
@@ -191,16 +194,24 @@ namespace tiny_png {
         return bits;
     }
 
-    std::vector<LZ77Seq> huffman_decode(BitStream &bits) {
-        std::vector<LZ77Seq> seqs;
-        initializeHuffmanLookup();
-        initializeHuffmanTree();
-        bits.rewind();
-        bits.nextBit(); bits.nextBit(); bits.nextBit();  // Ignore block info
+    static bool decodeStoredBlock(BitStream& bits, std::vector<LZ77Seq>& seqs) {
+        bits.alignToByte();
+        const auto len = bits.readInt(16, false);
+        const auto nlen = bits.readInt(16, false);
+        if ((len ^ nlen) != 0xFFFF) {
+            return false;
+        }
+        for (std::int32_t i = 0; i < len; ++i) {
+            seqs.emplace_back(static_cast<std::uint8_t>(bits.readInt(8, false)), 0, 0);
+        }
+        return true;
+    }
+
+    static bool decodeFixedHuffmanBlock(BitStream& bits, std::vector<LZ77Seq>& seqs) {
         while (true) {
             const auto code = literalLengthTree->findValue(bits);
             if (code == DEFLATE_END) {
-                break;
+                return true;
             }
             if (code < 256) {
                 seqs.emplace_back(code, 0, 0);
@@ -211,13 +222,33 @@ namespace tiny_png {
                 }
                 const auto distanceCode = bits.readInt(5, true);
                 if (distanceCode >= HUFFMAN_DISTANCE_EXTRA_BITS_SIZE) {  // Invalid distance code
-                    break;
+                    return false;
                 }
                 auto dist = huffmanDistanceToOffsetBase[distanceCode];
                 if (const auto distanceExtraBits = HUFFMAN_DISTANCE_EXTRA_BITS[distanceCode]) {
                     dist += bits.readInt(distanceExtraBits, false);
                 }
                 seqs.emplace_back(0, len, dist);
+            }
+        }
+    }
+
+    std::vector<LZ77Seq> huffman_decode(BitStream &bits) {
+        std::vector<LZ77Seq> seqs;
+        initializeHuffmanLookup();
+        initializeHuffmanTree();
+        bits.rewind();
+        bool finalBlock = false;
+        while (!finalBlock) {
+            finalBlock = bits.nextBit();
+            bool valid = false;
+            switch (bits.readInt(2, false)) {
+                case DEFLATE_BLOCK_STORED: valid = decodeStoredBlock(bits, seqs); break;
+                case DEFLATE_BLOCK_FIXED_HUFFMAN: valid = decodeFixedHuffmanBlock(bits, seqs); break;
+                default: break;  // Dynamic Huffman is not supported
+            }
+            if (!valid) {
+                break;
             }
         }
         return seqs;

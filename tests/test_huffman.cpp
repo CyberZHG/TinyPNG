@@ -4,19 +4,12 @@
 using namespace std::string_literals;
 using namespace tiny_png;
 
-static void expectSameSeqs(const std::vector<LZ77Seq>& a, const std::vector<LZ77Seq>& b) {
-    ASSERT_EQ(a.size(), b.size());
-    for (std::size_t i = 0; i < a.size(); ++i) {
-        EXPECT_EQ(a[i], b[i]);
-    }
-}
-
 TEST(Huffman, Empty) {
     constexpr std::vector<LZ77Seq> seqs;
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000000" + "000000");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Literal0) {
@@ -24,7 +17,7 @@ TEST(Huffman, Literal0) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "00110000" + "0000000" + "000000");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Literal143) {
@@ -32,7 +25,7 @@ TEST(Huffman, Literal143) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "10111111" + "0000000" + "000000");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Literal144) {
@@ -40,7 +33,7 @@ TEST(Huffman, Literal144) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "110010000" + "0000000" + "00000");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Literal255) {
@@ -48,7 +41,7 @@ TEST(Huffman, Literal255) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "111111111" + "0000000" + "00000");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length3Offset1) {
@@ -56,7 +49,7 @@ TEST(Huffman, Length3Offset1) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "00000" + "0000000" + "00");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length11Offset1) {
@@ -64,7 +57,7 @@ TEST(Huffman, Length11Offset1) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0001001" + "0" + "00000" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length12Offset1) {
@@ -72,7 +65,7 @@ TEST(Huffman, Length12Offset1) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0001001" + "1" + "00000" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length227ffset1) {
@@ -80,7 +73,7 @@ TEST(Huffman, Length227ffset1) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "11000100" + "00000" + "00000" + "0000000" + "0000");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length257ffset1) {
@@ -88,7 +81,7 @@ TEST(Huffman, Length257ffset1) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "11000100" + "01111" + "00000" + "0000000" + "0000");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length258ffset1) {
@@ -96,7 +89,7 @@ TEST(Huffman, Length258ffset1) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "11000101" + "00000" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length3Offset5) {
@@ -104,7 +97,7 @@ TEST(Huffman, Length3Offset5) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "00100" + "0" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length3Offset6) {
@@ -112,7 +105,7 @@ TEST(Huffman, Length3Offset6) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "00100" + "1" + "0000000" + "0");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length3Offset24577) {
@@ -120,7 +113,7 @@ TEST(Huffman, Length3Offset24577) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "11101" + "0000000000000" + "0000000" + "00000");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, Length3Offset32768) {
@@ -128,7 +121,7 @@ TEST(Huffman, Length3Offset32768) {
     auto bs = huffman_encode(seqs);
     EXPECT_EQ(bs.toString(), "110"s + "0000001" + "11101" + "1111111111111" + "0000000" + "00000");
     const auto decoded = huffman_decode(bs);
-    expectSameSeqs(seqs, decoded);
+    EXPECT_EQ(seqs, decoded);
 }
 
 TEST(Huffman, RandomTest) {
@@ -152,6 +145,6 @@ TEST(Huffman, RandomTest) {
         }
         auto bs = huffman_encode(seqs);
         const auto decoded = huffman_decode(bs);
-        expectSameSeqs(seqs, decoded);
+        EXPECT_EQ(seqs, decoded);
     }
 }

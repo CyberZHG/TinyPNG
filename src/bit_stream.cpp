@@ -42,6 +42,10 @@ namespace tiny_png {
         return _buffer[index] & (1 << (_readIndex++ & 7));
     }
 
+    void BitStream::alignToByte() {
+        _readIndex = (_readIndex + 7) & ~static_cast<std::size_t>(7);
+    }
+
     std::int32_t BitStream::readInt(const std::int32_t numBits, const bool msb) {
         std::int32_t value = 0;
         for (int i = 0; i < numBits; ++i) {

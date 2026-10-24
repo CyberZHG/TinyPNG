@@ -26,6 +26,7 @@ namespace tiny_png {
 
         void rewind();
         bool nextBit();
+        void alignToByte();
         std::int32_t readInt(std::int32_t numBits, bool msb);
 
         [[nodiscard]] std::string toString() const;

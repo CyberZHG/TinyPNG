@@ -68,8 +68,12 @@ TEST(TinyPNG, LoadSaveReloadImages) {
     const std::string dataDir = TINY_PNG_TEST_DATA_DIR;
     for (const auto& [colorType, bytesPerPixel, name] : COLOR_TYPES) {
         std::vector<std::uint8_t> noneFilterPixels;
-        for (const std::string filterName : {"none", "sub", "up"}) {
-            const auto fileName = name + "_" + filterName + ".png";
+        std::vector<std::string> variants = {"none", "sub", "up"};
+        if (colorType == ColorType::RGBA) {
+            variants.emplace_back("sub_stored");
+        }
+        for (const auto& variant : variants) {
+            const auto fileName = name + "_" + variant + ".png";
             const auto image = load_image(dataDir + "/" + fileName);
             ASSERT_EQ(image.error, "") << fileName;
             ASSERT_EQ(image.colorType, colorType) << fileName;
