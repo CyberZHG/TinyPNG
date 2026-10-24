@@ -3,18 +3,9 @@
 
 #include <cstdint>
 #include <vector>
+#include "constants.h"
 
 namespace tiny_png {
-
-    enum class ColorType {
-        RGBA = 6
-    };
-
-    enum class FilterType {
-        // None = 0,
-        Sub = 1,
-        // Up = 2,
-    };
 
     void addHeaderChunk(std::vector<std::uint8_t>& buffer, std::uint32_t width, std::uint32_t height, ColorType colorType);
     void addDataChunk(std::vector<std::uint8_t>& buffer, const std::vector<std::uint8_t>& data);

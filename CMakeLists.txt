@@ -49,6 +49,8 @@ add_library(TinyPNG STATIC
         src/deflate.cpp
         include/png_chunk.h
         src/png_chunk.cpp
+        include/tiny_png.h
+        src/tiny_png.cpp
 )
 
 target_include_directories(TinyPNG
@@ -74,6 +76,7 @@ if(TINY_PNG_ENABLE_TESTS)
             tests/test_huffman.cpp
             tests/test_deflate.cpp
             tests/test_png_chunk.cpp
+            tests/test_tiny_png.cpp
     )
 
     target_link_libraries(runTests
