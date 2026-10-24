@@ -14,7 +14,7 @@ namespace tiny_png {
             return _buffer;
         }
 
-        void writeInt(std::int32_t value, std::int32_t numBits);
+        void writeInt(std::int32_t value, std::int32_t numBits, bool bigEndian);
 
         void rewind();
         bool nextBit();

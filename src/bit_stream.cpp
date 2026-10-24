@@ -5,7 +5,15 @@ namespace tiny_png {
     BitStream::BitStream() : _index(0), _pos(0), _readIndex(0)  {
     }
 
-    void BitStream::writeInt(std::int32_t value, std::int32_t numBits) {
+    void BitStream::writeInt(std::int32_t value, std::int32_t numBits, const bool bigEndian) {
+        if (bigEndian) {
+            std::int32_t newValue = 0;
+            for (int i = 0; i < numBits; ++i) {
+                newValue = (newValue << 1) | (value & 1);
+                value >>= 1;
+            }
+            value = newValue;
+        }
         while (numBits > 0) {
             if (_index == _buffer.size()) {
                 _buffer.push_back(0);

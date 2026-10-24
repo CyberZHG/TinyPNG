@@ -82,7 +82,7 @@ namespace tiny_png {
 
     void writeLiteral(BitStream& bits, const std::uint16_t value) {
         const auto index = findHuffmanCodeBitsIndex(value);
-        bits.writeInt(HUFFMAN_CODE_OFFSET[index] + (value - HUFFMAN_CODE_INDEX[index]), HUFFMAN_CODE_BITS[index]);
+        bits.writeInt(HUFFMAN_CODE_OFFSET[index] + (value - HUFFMAN_CODE_INDEX[index]), HUFFMAN_CODE_BITS[index], true);
     }
 
     void writeLength(BitStream& bits, const std::uint16_t value) {
@@ -90,21 +90,22 @@ namespace tiny_png {
         const auto code = huffmanLengthToCode[value];
         const auto extraBits = huffmanLengthToExtraBits[value];
         writeLiteral(bits, code);
-        bits.writeInt((value - base) & ((1 << extraBits) - 1), extraBits);
+        bits.writeInt((value - base) & ((1 << extraBits) - 1), extraBits, false);
     }
 
     void writeOffset(BitStream& bits, const std::uint16_t value) {
         const auto base = huffmanOffsetToBase[value];
         const auto code = huffmanOffsetToCode[value];
         const auto extraBits = huffmanOffsetToExtraBits[value];
-        bits.writeInt(code, 5);
-        bits.writeInt((value - base) & ((1 << extraBits) - 1), extraBits);
+        bits.writeInt(code, 5, true);
+        bits.writeInt((value - base) & ((1 << extraBits) - 1), extraBits, false);
     }
 
     BitStream huffman_encode(const std::vector<LZ77Seq> &seqs) {
         BitStream bits;
         initializeHuffmanLookup();
-        bits.writeInt(0b101, 3); // Last block, fixed Huffman tree
+        bits.writeInt(1, 1, false); // Last block
+        bits.writeInt(0b01, 2, false); // Fixed Huffman tree
         for (const auto& [byte, offset, len] : seqs) {
             if (offset == 0) {
                 writeLiteral(bits, byte);
