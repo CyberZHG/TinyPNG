@@ -48,10 +48,9 @@ TEST(LZ77Test, FourToFiveSameBytes) {
     std::vector<std::uint8_t> bytes = {'A', 'A', 'A', 'A'};
     for (int k = 0; k < 2; ++k) {
         const auto seqs = lz77_encode(bytes.data(), bytes.size());
-        ASSERT_EQ(seqs.size(), 4 + k);
-        for (int i = 0; i < 4 + k; ++i) {
-            ASSERT_EQ(seqs[i], LZ77Seq('A', 0, 0));
-        }
+        ASSERT_EQ(seqs.size(), 2);
+        ASSERT_EQ(seqs[0], LZ77Seq('A', 0, 0));
+        ASSERT_EQ(seqs[1], LZ77Seq(0, 1, 3 + k));
         expectSameBytes(lz77_decode(seqs), bytes);
         bytes.push_back('A');
     }
@@ -60,11 +59,9 @@ TEST(LZ77Test, FourToFiveSameBytes) {
 TEST(LZ77Test, SixSameBytes) {
     const std::vector<std::uint8_t> bytes = {'A', 'A', 'A', 'A', 'A', 'A'};
     const auto seqs = lz77_encode(bytes.data(), bytes.size());
-    ASSERT_EQ(seqs.size(), 4);
-    for (int i = 0; i < 3; ++i) {
-        ASSERT_EQ(seqs[i], LZ77Seq('A', 0, 0));
-    }
-    ASSERT_EQ(seqs[3], LZ77Seq(0, 1, 3));
+    ASSERT_EQ(seqs.size(), 2);
+    ASSERT_EQ(seqs[0], LZ77Seq('A', 0, 0));
+    ASSERT_EQ(seqs[1], LZ77Seq(0, 1, 5));
     expectSameBytes(lz77_decode(seqs), bytes);
 }
 
@@ -108,14 +105,12 @@ TEST(LZ77Test, ABCDABCABCD) {
 TEST(LZ77Test, Ax10000) {
     const std::vector<std::uint8_t> bytes(10000, 'A');
     const auto seqs = lz77_encode(bytes.data(), bytes.size());
-    ASSERT_EQ(seqs.size(), 42);
+    ASSERT_EQ(seqs.size(), 40);
     ASSERT_EQ(seqs[0], LZ77Seq('A', 0, 0));
-    ASSERT_EQ(seqs[1], LZ77Seq('A', 0, 0));
-    ASSERT_EQ(seqs[2], LZ77Seq('A', 0, 0));
-    ASSERT_EQ(seqs[3], LZ77Seq(0, 1, 258));
-    ASSERT_EQ(seqs[4], LZ77Seq(0, 1, 258));
-    ASSERT_EQ(seqs[5], LZ77Seq(0, 1, 258));
-    ASSERT_EQ(seqs[41], LZ77Seq(0, 1, 193));
+    for (int i = 1; i < 39; ++i) {
+        ASSERT_EQ(seqs[i], LZ77Seq(0, 1, 258));
+    }
+    ASSERT_EQ(seqs[39], LZ77Seq(0, 1, 195));
     expectSameBytes(lz77_decode(seqs), bytes);
 }
 

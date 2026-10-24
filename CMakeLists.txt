@@ -108,11 +108,11 @@ if(TINY_PNG_BIND_ES)
             PRIVATE TinyPNG
     )
 
-    target_compile_options(SpikyNesWASM PRIVATE "-O3")
+    target_compile_options(TinyPNGWASM PRIVATE "-O3")
 
-    set_target_properties(SpikyNesWASM PROPERTIES SUFFIX ".js")
+    set_target_properties(TinyPNGWASM PROPERTIES SUFFIX ".js")
 
-    target_link_options(SpikyNesWASM PRIVATE
+    target_link_options(TinyPNGWASM PRIVATE
             "--bind"
             "-sMODULARIZE=1"
             "-sEXPORT_ES6=1"

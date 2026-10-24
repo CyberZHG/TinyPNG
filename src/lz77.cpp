@@ -26,7 +26,7 @@ namespace tiny_png {
                 hash = bytesHash(data, i);
             }
             if (i < matchEnd) {
-            } else if (i < LZ77_MIN_MATCH_LEN || i + LZ77_MIN_MATCH_LEN - 1 >= len) {
+            } else if (i + LZ77_MIN_MATCH_LEN - 1 >= len) {
                 seqs.push_back({data[i], 0, 0});
             } else {
                 LZ77Seq bestMatch = {data[i], 0, 0};
@@ -70,7 +70,9 @@ namespace tiny_png {
                 data.push_back(byte);
             } else {
                 for (std::uint16_t i = 0; i < len; ++i) {
-                    data.push_back(data[data.size() - offset]);
+                    if (data.size() >= offset) {
+                        data.push_back(data[data.size() - offset]);
+                    }
                 }
             }
         }

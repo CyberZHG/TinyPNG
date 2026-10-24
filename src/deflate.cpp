@@ -209,9 +209,12 @@ namespace tiny_png {
                 if (const auto lengthExtraBits = huffmanCodeToLengthExtraBits[code]) {
                     length += bits.readInt(lengthExtraBits, false);
                 }
-                const auto offsetIndex = bits.readInt(5, true);
-                auto offset = huffmanCodeToOffsetBase[offsetIndex];
-                if (const auto offsetExtraBits = HUFFMAN_OFFSET_EXTRA_BITS[offsetIndex]) {
+                const auto offsetCode = bits.readInt(5, true);
+                if (offsetCode >= HUFFMAN_OFFSET_EXTRA_BITS_SIZE) {  // Invalid offset code
+                    break;
+                }
+                auto offset = huffmanCodeToOffsetBase[offsetCode];
+                if (const auto offsetExtraBits = HUFFMAN_OFFSET_EXTRA_BITS[offsetCode]) {
                     offset += bits.readInt(offsetExtraBits, false);
                 }
                 seqs.push_back(LZ77Seq(0, offset, length));
