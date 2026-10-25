@@ -105,6 +105,10 @@ namespace tiny_png {
                     return imageData;
                 }
             } else if (chunkType == ChunkType::I_DATA) {
+                if (pos + size >= buffer.size()) {
+                    imageData.error = "Unexpected end of file";
+                    return imageData;
+                }
                 compressed.insert(compressed.end(), buffer.begin() + pos, buffer.begin() + pos + size);
                 pos += size + 4;  // Skip CRC32
             } else if (chunkType == ChunkType::I_END) {
