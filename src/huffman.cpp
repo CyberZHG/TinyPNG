@@ -107,13 +107,8 @@ namespace tiny_png {
             return findValue(next, bits);
         }
     };
-    static HuffmanTree* literalLengthTree = nullptr;
 
-    void initializeHuffmanLookup() {
-        static bool initialized = false;
-        if (initialized) {
-            return;
-        }
+    static void populateHuffmanLookup() {
         int length = LZ77_MIN_MATCH_LEN;
         for (int i = 0; i < HUFFMAN_LENGTH_EXTRA_BITS_SIZE; ++i) {
             const int range = 1 << HUFFMAN_LENGTH_EXTRA_BITS[i];
@@ -145,22 +140,30 @@ namespace tiny_png {
             }
             huffmanDistanceToOffsetBase[i] = base;
         }
-        initialized = true;
     }
 
-    void initializeHuffmanTree() {
-        if (literalLengthTree != nullptr) {
-            return;
-        }
-        literalLengthTree = new HuffmanTree();
-        for (std::size_t i = 0; i < HUFFMAN_CODE_INDEX_SIZE; ++i) {
-            const auto range = static_cast<std::int16_t>(HUFFMAN_CODE_INDEX[i + 1] - HUFFMAN_CODE_INDEX[i]);
-            for (std::int16_t j = 0; j < range; ++j) {
-                const auto code = static_cast<std::int16_t>(HUFFMAN_CODE_OFFSET[i] + j);
-                const auto value = static_cast<std::int16_t>(HUFFMAN_CODE_INDEX[i] + j);
-                literalLengthTree->addCode(code, value, HUFFMAN_CODE_BITS[i]);
+    void initializeHuffmanLookup() {
+        static const bool initialized = [] {
+            populateHuffmanLookup();
+            return true;
+        }();
+        (void)initialized;
+    }
+
+    static const HuffmanTree& fixedLiteralLengthTree() {
+        static const HuffmanTree tree = [] {
+            HuffmanTree t;
+            for (std::size_t i = 0; i < HUFFMAN_CODE_INDEX_SIZE; ++i) {
+                const auto range = static_cast<std::int16_t>(HUFFMAN_CODE_INDEX[i + 1] - HUFFMAN_CODE_INDEX[i]);
+                for (std::int16_t j = 0; j < range; ++j) {
+                    const auto code = static_cast<std::int16_t>(HUFFMAN_CODE_OFFSET[i] + j);
+                    const auto value = static_cast<std::int16_t>(HUFFMAN_CODE_INDEX[i] + j);
+                    t.addCode(code, value, HUFFMAN_CODE_BITS[i]);
+                }
             }
-        }
+            return t;
+        }();
+        return tree;
     }
 
     size_t findHuffmanCodeBitsIndex(const std::uint16_t value) {
@@ -255,7 +258,7 @@ namespace tiny_png {
     }
 
     static bool decodeFixedHuffmanBlock(BitStream& bits, std::vector<LZ77Seq>& seqs) {
-        return decodeHuffmanBlock(bits, seqs, *literalLengthTree, nullptr);
+        return decodeHuffmanBlock(bits, seqs, fixedLiteralLengthTree(), nullptr);
     }
 
     static bool buildHuffmanTree(const std::vector<std::uint8_t>& lengths, HuffmanTree& tree, const bool allowIncomplete) {
@@ -355,7 +358,6 @@ namespace tiny_png {
     std::vector<LZ77Seq> huffman_decode(BitStream &bits) {
         std::vector<LZ77Seq> seqs;
         initializeHuffmanLookup();
-        initializeHuffmanTree();
         bits.rewind();
         bool finalBlock = false;
         while (!finalBlock) {

@@ -7,8 +7,6 @@ namespace tiny_png {
     constexpr std::uint16_t MAX_MATCH_NUM = 32;
     constexpr std::uint16_t MATCH_HASH_BITS = 15;
 
-    static std::int64_t heads[1 << MATCH_HASH_BITS];
-
     static std::uint16_t bytesHash(const std::uint8_t* data, const std::size_t pos) {
         std::uint16_t h = data[pos];
         h = (h * 251) ^ data[pos + 1];
@@ -18,6 +16,7 @@ namespace tiny_png {
 
     std::vector<LZ77Seq> lz77_encode(const std::uint8_t* data, const std::size_t len) {
         std::vector<LZ77Seq> seqs;
+        thread_local std::int64_t heads[1 << MATCH_HASH_BITS];
         std::memset(heads, -1, sizeof(heads));
         std::vector<std::int64_t> prev(len, -1);
         for (size_t i = 0, matchEnd = 0; i < len; ++i) {
