@@ -6,6 +6,7 @@ A lightweight, minimal PNG library.
 
 - Save: images with basic compression.
 - Load: only guaranteed to read files written by this library.
+- Not thread-safe.
 
 ## Usage
 

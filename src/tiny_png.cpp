@@ -25,12 +25,12 @@ namespace tiny_png {
             buffer.push_back(byte);
         }
         addHeaderChunk(buffer, width, height, colorType);
-        const std::int32_t bytesPerPixel = getBytesPerPixel(colorType);
+        const auto bytesPerPixel = getBytesPerPixel(colorType);
         std::vector<std::uint8_t> filteredData(static_cast<std::size_t>(height) * (width * bytesPerPixel + 1));
         for (std::size_t i = 0, pos = 0; i < static_cast<std::size_t>(height); ++i) {
             filteredData[pos++] = 1;  // Always use SUB
             for (std::size_t j = 0; j < width; ++j) {
-                for (int k = 0; k < bytesPerPixel; ++k) {
+                for (std::size_t k = 0; k < bytesPerPixel; ++k) {
                     const auto currentByte = data[(i * width + j) * bytesPerPixel + k];
                     if (j == 0) {
                         filteredData[pos++] = currentByte;
@@ -46,17 +46,33 @@ namespace tiny_png {
         addEndChunk(buffer);
 
         std::ofstream fs(filePath, std::ios::out | std::ios::binary);
+        if (!fs) {
+            return false;
+        }
         fs.write(reinterpret_cast<const std::ostream::char_type*>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
         fs.close();
-        return true;
+        return static_cast<bool>(fs);
     }
 
     static PNGData loadImageImpl(const std::string& filePath) {
         PNGData imageData;
 
         std::ifstream fs(filePath, std::ios::binary);
+        if (!fs) {
+            imageData.error = "Failed to open file";
+            return imageData;
+        }
         const std::vector<std::uint8_t> buffer{std::istreambuf_iterator(fs), {}};
+        if (fs.bad()) {
+            imageData.error = "Failed to read file";
+            return imageData;
+        }
         fs.close();
+
+        if (buffer.size() < sizeof(PNG_SIGNATURE)) {
+            imageData.error = "Wrong PNG signature";
+            return imageData;
+        }
 
         std::size_t pos = 0;
         for (const auto expected : PNG_SIGNATURE) {
