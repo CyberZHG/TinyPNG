@@ -1,0 +1,60 @@
+[build-system]
+requires = ["scikit-build-core", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "lib-tiny-png"
+version = "0.1.0"
+description = "A lightweight, minimal PNG library."
+requires-python = ">=3.8"
+readme = "python/README.md"
+license = { text = "MIT" }
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/CyberZHG/TinyPNG"
+Repository = "https://github.com/CyberZHG/TinyPNG"
+Issues = "https://github.com/CyberZHG/TinyPNG/issues"
+
+[tool.scikit-build]
+build-dir = "../cmake-build-python/{wheel_tag}"
+build.verbose = true
+
+[tool.scikit-build.cmake.define]
+TINY_PNG_BIND_PYTHON = "ON"
+
+[tool.scikit-build.sdist]
+exclude = [
+    ".*",
+    "build*",
+    "cmake-build*",
+    "dist",
+    "demo",
+    "tests",
+    "wasm",
+    "*.md",
+    "python/tests",
+]
+include = [
+    "python/README.md",
+]
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "black",
+    "isort",
+    "flake8",
+]
