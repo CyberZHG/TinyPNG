@@ -9,7 +9,20 @@ A lightweight, minimal PNG library.
 
 ## Usage
 
-TODO
+```cpp
+#include "tiny_png/tiny_png.h"
+using namespace tiny_png;
+
+std::vector<std::uint8_t> pixels(width * height * 4);
+save_image("output.png", width, height, pixels.data(), ColorType::RGBA);
+
+const auto image = load_image("output.png");
+if (image.error.empty()) {
+    // image.width, image.height, image.colorType, image.buffer
+}
+```
+
+See [demo](demo) for a complete example.
 
 ## Specification
 

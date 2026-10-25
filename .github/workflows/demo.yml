@@ -1,0 +1,25 @@
+name: Demo
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "latest"
+
+      - name: Build & Run
+        run: |
+          cmake -S demo -B cmake-build-demo -DTINY_PNG_DEMO_USE_LOCAL=ON
+          cmake --build cmake-build-demo
+          cd cmake-build-demo && ./demo && ls -lh demo.png
