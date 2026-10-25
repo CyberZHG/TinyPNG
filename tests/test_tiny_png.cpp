@@ -71,7 +71,7 @@ TEST(TinyPNG, LoadSaveReloadImages) {
         std::vector<std::string> variants = {"none", "sub", "up"};
         if (colorType == ColorType::RGBA) {
             variants.emplace_back("sub_stored");
-            // variants.emplace_back("sub_dynamic");
+            variants.emplace_back("sub_dynamic");
             variants.emplace_back("average");
             variants.emplace_back("paeth");
         }

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <stdexcept>
 #include "tiny_png/constants.h"
 #include "tiny_png/huffman.h"
@@ -7,7 +8,7 @@ namespace tiny_png {
     constexpr std::uint16_t DEFLATE_END = 256;
     constexpr std::int32_t DEFLATE_BLOCK_STORED = 0;
     constexpr std::int32_t DEFLATE_BLOCK_FIXED_HUFFMAN = 1;
-    // constexpr std::int32_t DEFLATE_BLOCK_DYNAMIC_HUFFMAN = 2;
+    constexpr std::int32_t DEFLATE_BLOCK_DYNAMIC_HUFFMAN = 2;
 
     constexpr std::size_t HUFFMAN_CODE_INDEX_SIZE = 4;
     constexpr std::size_t HUFFMAN_NUM_CODE = 288;
@@ -16,6 +17,7 @@ namespace tiny_png {
     constexpr std::int16_t HUFFMAN_CODE_OFFSET[] = {0b00110000, 0b110010000, 0, 0b11000000};
 
     constexpr std::int16_t HUFFMAN_LENGTH_CODE_START = 257;
+    constexpr std::int16_t HUFFMAN_LENGTH_CODE_END = 285;
     constexpr std::int32_t HUFFMAN_LENGTH_EXTRA_BITS_SIZE = 29;
     constexpr std::uint8_t HUFFMAN_LENGTH_EXTRA_BITS[] = {
         0, 0, 0, 0, 0, 0, 0, 0,  // 257 - 264
@@ -48,9 +50,16 @@ namespace tiny_png {
     static std::uint8_t huffmanDistanceToExtraBits[LZ77_MAX_MATCH_OFFSET + 1];
     static std::uint16_t huffmanDistanceToOffsetBase[HUFFMAN_DISTANCE_EXTRA_BITS_SIZE];
 
+    constexpr std::int32_t HUFFMAN_MAX_CODE_BITS = 15;
+    constexpr std::int32_t HUFFMAN_MAX_LITERAL_LENGTH_CODES = 286;
+    constexpr std::int32_t HUFFMAN_NUM_CODE_LENGTH_CODES = 19;
+    constexpr std::uint8_t HUFFMAN_CODE_LENGTH_ORDER[] = {
+        16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
+    };
+
     class HuffmanTree {
     public:
-        HuffmanTree() : _nodeNum(1) {}
+        HuffmanTree() : _nodeNum(1), _nodes(575) {}
 
         void addCode(const std::int16_t code, const std::int16_t value, const std::uint8_t bits) {
             addCode(0, code, value, bits);
@@ -69,9 +78,12 @@ namespace tiny_png {
         };
 
         std::int32_t _nodeNum;
-        TreeNode _nodes[575];
+        std::vector<TreeNode> _nodes;
 
         void addCode(const std::size_t index, const std::int16_t code, const std::int16_t value, std::uint8_t bits) {
+            if (index >= _nodes.size()) {
+                _nodes.resize(index + 1);
+            }
             if (bits == 0) {
                 _nodes[index].value = value;
                 return;
@@ -88,7 +100,11 @@ namespace tiny_png {
             if (_nodes[index].value != -1) {
                 return _nodes[index].value;
             }
-            return findValue(_nodes[index].next[bits.nextBit()], bits);
+            const auto next = _nodes[index].next[bits.nextBit()];
+            if (next == -1) {
+                return -1;
+            }
+            return findValue(next, bits);
         }
     };
     static HuffmanTree* literalLengthTree = nullptr;
@@ -113,10 +129,10 @@ namespace tiny_png {
             }
         }
         huffmanLengthToBase[LZ77_MAX_MATCH_LEN] = LZ77_MAX_MATCH_LEN;
-        huffmanLengthToCode[LZ77_MAX_MATCH_LEN] = 285;
+        huffmanLengthToCode[LZ77_MAX_MATCH_LEN] = HUFFMAN_LENGTH_CODE_END;
         huffmanLengthToExtraBits[LZ77_MAX_MATCH_LEN] = 0;
-        huffmanCodeToLengthBase[285] = 258;
-        huffmanCodeToLengthExtraBits[285] = 0;
+        huffmanCodeToLengthBase[HUFFMAN_LENGTH_CODE_END] = 258;
+        huffmanCodeToLengthExtraBits[HUFFMAN_LENGTH_CODE_END] = 0;
         int dist = 1;
         for (int i = 0; i < HUFFMAN_DISTANCE_EXTRA_BITS_SIZE; ++i) {
             const auto extraBits = HUFFMAN_DISTANCE_EXTRA_BITS[i];
@@ -197,8 +213,7 @@ namespace tiny_png {
     static bool decodeStoredBlock(BitStream& bits, std::vector<LZ77Seq>& seqs) {
         bits.alignToByte();
         const auto len = bits.readInt(16, false);
-        const auto nlen = bits.readInt(16, false);
-        if ((len ^ nlen) != 0xFFFF) {
+        if ((len ^ bits.readInt(16, false)) != 0xFFFF) {
             return false;
         }
         for (std::int32_t i = 0; i < len; ++i) {
@@ -207,9 +222,12 @@ namespace tiny_png {
         return true;
     }
 
-    static bool decodeFixedHuffmanBlock(BitStream& bits, std::vector<LZ77Seq>& seqs) {
+    static bool decodeHuffmanBlock(BitStream& bits, std::vector<LZ77Seq>& seqs, const HuffmanTree& literalTree, const HuffmanTree* distanceTree) {
         while (true) {
-            const auto code = literalLengthTree->findValue(bits);
+            const auto code = literalTree.findValue(bits);
+            if (code < 0 || code > HUFFMAN_LENGTH_CODE_END) {
+                return false;
+            }
             if (code == DEFLATE_END) {
                 return true;
             }
@@ -220,8 +238,8 @@ namespace tiny_png {
                 if (const auto lengthExtraBits = huffmanCodeToLengthExtraBits[code]) {
                     len += bits.readInt(lengthExtraBits, false);
                 }
-                const auto distanceCode = bits.readInt(5, true);
-                if (distanceCode >= HUFFMAN_DISTANCE_EXTRA_BITS_SIZE) {  // Invalid distance code
+                const auto distanceCode = distanceTree == nullptr ? bits.readInt(5, true) : distanceTree->findValue(bits);
+                if (distanceCode < 0 || distanceCode >= HUFFMAN_DISTANCE_EXTRA_BITS_SIZE) {
                     return false;
                 }
                 auto dist = huffmanDistanceToOffsetBase[distanceCode];
@@ -231,6 +249,101 @@ namespace tiny_png {
                 seqs.emplace_back(0, len, dist);
             }
         }
+    }
+
+    static bool decodeFixedHuffmanBlock(BitStream& bits, std::vector<LZ77Seq>& seqs) {
+        return decodeHuffmanBlock(bits, seqs, *literalLengthTree, nullptr);
+    }
+
+    static bool buildHuffmanTree(const std::vector<std::uint8_t>& lengths, HuffmanTree& tree, const bool allowIncomplete) {
+        std::int32_t lengthCount[HUFFMAN_MAX_CODE_BITS + 1] = {};
+        for (const auto length : lengths) {
+            ++lengthCount[length];
+        }
+        lengthCount[0] = 0;
+        std::int32_t left = 1;
+        for (std::int32_t bits = 1; bits <= HUFFMAN_MAX_CODE_BITS; ++bits) {
+            left = (left << 1) - lengthCount[bits];
+            if (left < 0) {  // Over-subscribed
+                return false;
+            }
+        }
+        if (left > 0) {
+            const auto numCodes = lengths.size() - std::ranges::count(lengths, 0);
+            const bool singleCode = numCodes == 1 && lengthCount[1] == 1;
+            if (numCodes > 0 && !(allowIncomplete && singleCode)) {
+                return false;
+            }
+        }
+        std::int32_t nextCode[HUFFMAN_MAX_CODE_BITS + 1] = {};
+        for (std::int32_t bits = 1, code = 0; bits <= HUFFMAN_MAX_CODE_BITS; ++bits) {
+            code = (code + lengthCount[bits - 1]) << 1;
+            nextCode[bits] = code;
+        }
+        for (std::size_t symbol = 0; symbol < lengths.size(); ++symbol) {
+            if (const auto length = lengths[symbol]) {
+                tree.addCode(static_cast<std::int16_t>(nextCode[length]++), static_cast<std::int16_t>(symbol), length);
+            }
+        }
+        return true;
+    }
+
+    static bool decodeDynamicHuffmanBlock(BitStream& bits, std::vector<LZ77Seq>& seqs) {
+        const auto numLiteralCodes = bits.readInt(5, false) + 257;
+        const auto numDistanceCodes = bits.readInt(5, false) + 1;
+        const auto numCodeLengthCodes = bits.readInt(4, false) + 4;
+        if (numLiteralCodes > HUFFMAN_MAX_LITERAL_LENGTH_CODES) {
+            return false;
+        }
+
+        std::vector<std::uint8_t> codeLengthLengths(HUFFMAN_NUM_CODE_LENGTH_CODES, 0);
+        for (std::int32_t i = 0; i < numCodeLengthCodes; ++i) {
+            codeLengthLengths[HUFFMAN_CODE_LENGTH_ORDER[i]] = static_cast<std::uint8_t>(bits.readInt(3, false));
+        }
+        HuffmanTree codeLengthTree;
+        if (!buildHuffmanTree(codeLengthLengths, codeLengthTree, false)) {
+            return false;
+        }
+
+        const auto numLengths = static_cast<std::size_t>(numLiteralCodes + numDistanceCodes);
+        std::vector<std::uint8_t> lengths;
+        lengths.reserve(numLengths);
+        while (lengths.size() < numLengths) {
+            const auto symbol = codeLengthTree.findValue(bits);
+            std::uint8_t length = 0;
+            std::int32_t repeat = 1;
+            if (symbol < 0) {
+                return false;
+            }
+            if (symbol < 16) {
+                length = static_cast<std::uint8_t>(symbol);
+            } else if (symbol == 16) {  // Repeat the previous length 3 - 6 times
+                if (lengths.empty()) {
+                    return false;
+                }
+                length = lengths.back();
+                repeat = 3 + bits.readInt(2, false);
+            } else if (symbol == 17) {  // Repeat zero 3 - 10 times
+                repeat = 3 + bits.readInt(3, false);
+            } else {  // Repeat zero 11 - 138 times
+                repeat = 11 + bits.readInt(7, false);
+            }
+            if (lengths.size() + repeat > numLengths) {
+                return false;
+            }
+            lengths.insert(lengths.end(), repeat, length);
+        }
+
+        const std::vector literalLengths(lengths.begin(), lengths.begin() + numLiteralCodes);
+        const std::vector distanceLengths(lengths.begin() + numLiteralCodes, lengths.end());
+        if (literalLengths[DEFLATE_END] == 0) {
+            return false;
+        }
+        HuffmanTree literalTree, distanceTree;
+        if (!buildHuffmanTree(literalLengths, literalTree, true) || !buildHuffmanTree(distanceLengths, distanceTree, true)) {
+            return false;
+        }
+        return decodeHuffmanBlock(bits, seqs, literalTree, &distanceTree);
     }
 
     std::vector<LZ77Seq> huffman_decode(BitStream &bits) {
@@ -245,7 +358,8 @@ namespace tiny_png {
             switch (bits.readInt(2, false)) {
                 case DEFLATE_BLOCK_STORED: valid = decodeStoredBlock(bits, seqs); break;
                 case DEFLATE_BLOCK_FIXED_HUFFMAN: valid = decodeFixedHuffmanBlock(bits, seqs); break;
-                default: break;  // Dynamic Huffman is not supported
+                case DEFLATE_BLOCK_DYNAMIC_HUFFMAN: valid = decodeDynamicHuffmanBlock(bits, seqs); break;
+                default: break;
             }
             if (!valid) {
                 break;
