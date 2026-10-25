@@ -6,7 +6,6 @@ A lightweight, minimal PNG library.
 
 - Save: images with basic compression.
 - Load: only guaranteed to read files written by this library.
-- Not thread-safe.
 
 ## Usage
 
@@ -15,7 +14,7 @@ A lightweight, minimal PNG library.
 using namespace tiny_png;
 
 std::vector<std::uint8_t> pixels(width * height * 4);
-save_image("output.png", width, height, pixels.data(), ColorType::RGBA);
+save_image("output.png", width, height, pixels, ColorType::RGBA);
 
 const auto image = load_image("output.png");
 if (image.error.empty()) {

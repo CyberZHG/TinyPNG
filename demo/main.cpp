@@ -14,7 +14,7 @@ int main() {
             pixels[(i * width + j) * 4 + 3] = (i / 40 + j / 40) % 2 == 0 ? 255 : 0;
         }
     }
-    save_image("demo.png", width, height, pixels.data());
+    save_image("demo.png", width, height, pixels);
 
     const auto image = load_image("demo.png");
     if (!image.error.empty()) {

@@ -17,7 +17,7 @@ TEST(TinyPNG, SaveLoadChessboardImage) {
             pixels[(i * width + j) * 4 + 3] = (i / 50 + j / 50) % 2 == 0 ? 255 : 0;
         }
     }
-    ASSERT_TRUE(save_image(filePath, width, height, pixels.data()));
+    ASSERT_TRUE(save_image(filePath, width, height, pixels));
 
     const auto image = load_image(filePath);
     ASSERT_EQ(image.error, "");
@@ -53,7 +53,7 @@ TEST(TinyPNG, RandomTest) {
         for (auto& p : pixels) {
             p = static_cast<std::uint8_t>(byte(gen));
         }
-        ASSERT_TRUE(save_image(filePath, width, height, pixels.data(), colorType));
+        ASSERT_TRUE(save_image(filePath, width, height, pixels, colorType));
 
         const auto image = load_image(filePath);
         ASSERT_EQ(image.error, "") << name;
@@ -89,7 +89,7 @@ TEST(TinyPNG, LoadSaveReloadImages) {
             }
 
             const auto filePath = "tiny_png_reload_test.png";
-            ASSERT_TRUE(save_image(filePath, image.width, image.height, image.buffer.data(), image.colorType)) << fileName;
+            ASSERT_TRUE(save_image(filePath, image.width, image.height, image.buffer, image.colorType)) << fileName;
             const auto reloaded = load_image(filePath);
             ASSERT_EQ(reloaded.error, "") << fileName;
             ASSERT_EQ(reloaded.width, image.width) << fileName;

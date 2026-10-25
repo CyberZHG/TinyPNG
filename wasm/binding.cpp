@@ -26,7 +26,7 @@ static val encodeImage(const std::uint32_t width, const std::uint32_t height, co
     if (pixels.size() != expected) {
         return val::null();
     }
-    save_image(TEMP_FILE_PATH, width, height, pixels.data(), colorType);
+    save_image(TEMP_FILE_PATH, width, height, pixels, colorType);
     std::ifstream fs(TEMP_FILE_PATH, std::ios::binary);
     const std::vector<std::uint8_t> encoded{std::istreambuf_iterator(fs), {}};
     fs.close();

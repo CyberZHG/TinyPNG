@@ -20,7 +20,7 @@ static bool saveImage(const std::string& filePath,
         throw py::value_error("data size mismatch: expected " + std::to_string(expected) +
                               " bytes, got " + std::to_string(info.size));
     }
-    return save_image(filePath, width, height, static_cast<const std::uint8_t*>(info.ptr), colorType);
+    return save_image(filePath, width, height, std::span<const std::uint8_t>(static_cast<const std::uint8_t*>(info.ptr), static_cast<std::size_t>(info.size)), colorType);
 }
 
 static PNGData loadImage(const std::string& filePath) {

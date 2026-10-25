@@ -18,14 +18,26 @@ namespace tiny_png {
     bool save_image(const std::string& filePath,
                     const std::uint32_t width,
                     const std::uint32_t height,
-                    const std::uint8_t* data,
+                    const std::span<const std::uint8_t> data,
                     const ColorType colorType) {
+        const auto bytesPerPixel = getBytesPerPixel(colorType);
+        constexpr auto maxSize = std::numeric_limits<std::size_t>::max();
+        if ((width != 0 && height > maxSize / width)) {
+            return false;
+        }
+        const std::size_t pixelCount = static_cast<std::size_t>(width) * height;
+        if (pixelCount > maxSize / bytesPerPixel) {
+            return false;
+        }
+        if (data.size() != pixelCount * bytesPerPixel) {
+            return false;
+        }
+
         std::vector<std::uint8_t> buffer;
         for (const auto byte : PNG_SIGNATURE) {
             buffer.push_back(byte);
         }
         addHeaderChunk(buffer, width, height, colorType);
-        const auto bytesPerPixel = getBytesPerPixel(colorType);
         std::vector<std::uint8_t> filteredData(static_cast<std::size_t>(height) * (width * bytesPerPixel + 1));
         for (std::size_t i = 0, pos = 0; i < static_cast<std::size_t>(height); ++i) {
             filteredData[pos++] = 1;  // Always use SUB
@@ -123,8 +135,7 @@ namespace tiny_png {
             } else if (chunkType == ChunkType::I_END) {
                 break;
             } else {
-                // Skip data & CRC32
-                pos += size + 4;
+                pos += size + 4;  // Skip data & CRC32
             }
         }
         if (compressed.size() < 6) {

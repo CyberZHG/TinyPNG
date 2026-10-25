@@ -1,6 +1,7 @@
 #ifndef TINYPNG_TINY_PNG_H
 #define TINYPNG_TINY_PNG_H
 
+#include <span>
 #include <string>
 #include <vector>
 #include "tiny_png/constants.h"
@@ -17,7 +18,7 @@ namespace tiny_png {
         PNGData();
     };
 
-    bool save_image(const std::string& filePath, std::uint32_t width, std::uint32_t height, const std::uint8_t* data, ColorType colorType = ColorType::RGBA);
+    bool save_image(const std::string& filePath, std::uint32_t width, std::uint32_t height, std::span<const std::uint8_t> data, ColorType colorType = ColorType::RGBA);
     PNGData load_image(const std::string& filePath);
 
 }
