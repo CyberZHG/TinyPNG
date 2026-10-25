@@ -1,3 +1,5 @@
+#include <exception>
+#include <string>
 #include <vector>
 #include <fstream>
 #include "tiny_png/png_chunk.h"
@@ -58,7 +60,7 @@ namespace tiny_png {
         return true;
     }
 
-    PNGData load_image(const std::string& filePath) {
+    static PNGData loadImageImpl(const std::string& filePath) {
         PNGData imageData;
 
         std::ifstream fs(filePath, std::ios::binary);
@@ -185,5 +187,15 @@ namespace tiny_png {
             }
         }
         return imageData;
+    }
+
+    PNGData load_image(const std::string& filePath) {
+        try {
+            return loadImageImpl(filePath);
+        } catch (const std::exception& e) {
+            PNGData imageData;
+            imageData.error = std::string("Failed to load image: ") + e.what();
+            return imageData;
+        }
     }
 }

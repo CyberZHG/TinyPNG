@@ -224,6 +224,9 @@ namespace tiny_png {
 
     static bool decodeHuffmanBlock(BitStream& bits, std::vector<LZ77Seq>& seqs, const HuffmanTree& literalTree, const HuffmanTree* distanceTree) {
         while (true) {
+            if (bits.exhausted()) {
+                return false;
+            }
             const auto code = literalTree.findValue(bits);
             if (code < 0 || code > HUFFMAN_LENGTH_CODE_END) {
                 return false;
@@ -309,6 +312,9 @@ namespace tiny_png {
         std::vector<std::uint8_t> lengths;
         lengths.reserve(numLengths);
         while (lengths.size() < numLengths) {
+            if (bits.exhausted()) {
+                return false;
+            }
             const auto symbol = codeLengthTree.findValue(bits);
             std::uint8_t length = 0;
             std::int32_t repeat = 1;
@@ -353,6 +359,9 @@ namespace tiny_png {
         bits.rewind();
         bool finalBlock = false;
         while (!finalBlock) {
+            if (bits.exhausted()) {
+                break;
+            }
             finalBlock = bits.nextBit();
             bool valid = false;
             switch (bits.readInt(2, false)) {
