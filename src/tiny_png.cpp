@@ -1,4 +1,5 @@
 #include <exception>
+#include <limits>
 #include <string>
 #include <vector>
 #include <fstream>
@@ -12,16 +13,6 @@ namespace tiny_png {
     const std::uint8_t PNG_SIGNATURE[] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
     PNGData::PNGData() : width(0), height(0), colorType(ColorType::RGBA) {
-    }
-
-    static std::int32_t getBytesPerPixel(const ColorType colorType) {
-        switch (colorType) {
-            case ColorType::Grayscale: return 1;
-            case ColorType::RGB: return 3;
-            case ColorType::GrayscaleAlpha: return 2;
-            case ColorType::RGBA: return 4;
-        }
-        return 4;
     }
 
     bool save_image(const std::string& filePath,
@@ -125,8 +116,27 @@ namespace tiny_png {
             return imageData;
         }
         auto decoded = deflate_decode(compressed);
-        const std::int32_t bytesPerPixel = getBytesPerPixel(imageData.colorType);
-        imageData.buffer.resize(imageData.width * imageData.height * bytesPerPixel);
+        const auto bytesPerPixel = getBytesPerPixel(imageData.colorType);
+        const auto mulOverflows = [](const std::size_t a, const std::size_t b, std::size_t& out) {
+            if (a != 0 && b > std::numeric_limits<std::size_t>::max() / a) {
+                return true;
+            }
+            out = a * b;
+            return false;
+        };
+        std::size_t rowBytes = 0, pixelBytes = 0, filteredBytes = 0;
+        if (mulOverflows(imageData.width, bytesPerPixel, rowBytes) ||
+            rowBytes > std::numeric_limits<std::size_t>::max() - 1 ||
+            mulOverflows(imageData.height, rowBytes, pixelBytes) ||
+            mulOverflows(imageData.height, rowBytes + 1, filteredBytes)) {
+            imageData.error = "Invalid image dimensions";
+            return imageData;
+        }
+        if (filteredBytes != decoded.size()) {
+            imageData.error = "Corrupted image data";
+            return imageData;
+        }
+        imageData.buffer.resize(pixelBytes);
         pos = 0;
         for (size_t i = 0; i < imageData.height; ++i) {
             auto filterTypeCode = decoded.at(pos++);
@@ -142,7 +152,7 @@ namespace tiny_png {
                     return imageData;
             }
             for (size_t j = 0; j < imageData.width; ++j) {
-                for (int k = 0; k < bytesPerPixel; ++k) {
+                for (size_t k = 0; k < bytesPerPixel; ++k) {
                     auto byte = decoded.at(pos++);
                     switch (filterType) {
                         case FilterType::None:

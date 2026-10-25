@@ -9,16 +9,6 @@ using namespace tiny_png;
 
 static const std::string TEMP_FILE_PATH = "/tmp/tiny_png_temp.png";
 
-static std::size_t getBytesPerPixel(const ColorType colorType) {
-    switch (colorType) {
-        case ColorType::Grayscale: return 1;
-        case ColorType::RGB: return 3;
-        case ColorType::GrayscaleAlpha: return 2;
-        case ColorType::RGBA: return 4;
-    }
-    return 4;
-}
-
 static std::vector<std::uint8_t> toVector(const val& data) {
     std::vector<std::uint8_t> buffer(data["length"].as<std::size_t>());
     val(typed_memory_view(buffer.size(), buffer.data())).call<void>("set", data);

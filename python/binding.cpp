@@ -6,16 +6,6 @@ using namespace tiny_png;
 
 namespace py = pybind11;
 
-static std::size_t getBytesPerPixel(const ColorType colorType) {
-    switch (colorType) {
-        case ColorType::Grayscale: return 1;
-        case ColorType::RGB: return 3;
-        case ColorType::GrayscaleAlpha: return 2;
-        case ColorType::RGBA: return 4;
-    }
-    return 4;
-}
-
 static bool saveImage(const std::string& filePath,
                       const std::uint32_t width,
                       const std::uint32_t height,

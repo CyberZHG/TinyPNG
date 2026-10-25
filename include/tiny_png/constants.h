@@ -20,6 +20,16 @@ namespace tiny_png {
         Paeth = 4,
     };
 
+    constexpr std::size_t getBytesPerPixel(const ColorType colorType) {
+        switch (colorType) {
+            case ColorType::Grayscale: return 1;
+            case ColorType::RGB: return 3;
+            case ColorType::GrayscaleAlpha: return 2;
+            case ColorType::RGBA: return 4;
+        }
+        return 4;
+    }
+
     constexpr std::uint16_t LZ77_MIN_MATCH_LEN = 3;
     constexpr std::uint16_t LZ77_MAX_MATCH_LEN = 258;
     constexpr std::uint16_t LZ77_MAX_MATCH_OFFSET = 32768;
