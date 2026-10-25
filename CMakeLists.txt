@@ -120,7 +120,7 @@ if(TINY_PNG_BIND_ES)
             PRIVATE TinyPNG
     )
 
-    target_compile_options(TinyPNGWASM PRIVATE "-O3")
+    target_compile_options(TinyPNGWASM PRIVATE "-O3" "-sNO_DISABLE_EXCEPTION_CATCHING")
 
     set_target_properties(TinyPNGWASM PROPERTIES SUFFIX ".js")
 
@@ -128,7 +128,8 @@ if(TINY_PNG_BIND_ES)
             "--bind"
             "-sMODULARIZE=1"
             "-sEXPORT_ES6=1"
-            "-sEXPORT_NAME=SpikyNesWASMModule"
+            "-sEXPORT_NAME=TinyPNGWASMModule"
             "-sALLOW_MEMORY_GROWTH=1"
+            "-sNO_DISABLE_EXCEPTION_CATCHING"
     )
 endif()

@@ -1,0 +1,28 @@
+{
+  "name": "lib-tiny-png",
+  "version": "0.1.0",
+  "description": "A lightweight, minimal PNG library.",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "wasm/TinyPNGWASM.js",
+    "wasm/TinyPNGWASM.wasm"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "mocha": "^11.7.5"
+  },
+  "scripts": {
+    "build": "bash build.sh",
+    "lint": "npx eslint index.js test/**/*.js",
+    "test": "mocha test/**/*.js"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/CyberZHG/TinyPNG",
+  "repository": "github:CyberZHG/TinyPNG"
+}
